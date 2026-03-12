@@ -461,77 +461,111 @@
       }
 
       /* 모바일 최적화 */
+      /* 📱 모바일 최적화 (지도 상단, 리스트 하단 분할 및 터치 최적화) */
+      /* 📱 모바일 UX: 네이티브 앱 스타일 바텀 시트 */
       @media (max-width: 768px) {
         body {
           flex-direction: column;
-          overflow: auto;
-          -webkit-overflow-scrolling: touch;
+          overflow: hidden;
+          position: relative;
         }
-        .sidebar {
+        /* 드래그 손잡이 부분 브라우저 간섭 차단 (굳어짐 방지 핵심!) */
+        #drag-handle,
+        #sheet-header {
+          touch-action: none;
+        }
+        .map-area {
+          position: absolute;
+          inset: 0;
           width: 100%;
-          max-height: 42vh;
-          min-height: 200px;
-          border-right: none;
-          border-bottom: 1px solid var(--border);
-          padding: 16px 20px;
+          height: 100vh; /* 지도는 항상 전체 화면 */
+          z-index: 1;
+        }
+
+        .sidebar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          height: 45vh; /* 기본적으로 화면의 45%만 차지 */
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px); /* 뒤에 비치는 지도 블러 처리 */
+          border-radius: 24px 24px 0 0;
+          box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+          padding: 12px 16px 20px;
+          z-index: 100;
+          transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 부드러운 스냅 애니메이션 */
+          border: none;
+        }
+
+        .sidebar.dragging {
+          transition: none;
+        } /* 드래그 중에는 애니메이션 끄기 */
+
+        /* 드래그 손잡이 디자인 */
+        .drag-handle {
+          width: 40px;
+          height: 5px;
+          background: #ccc;
+          border-radius: 3px;
+          margin: 0 auto 12px;
           flex-shrink: 0;
         }
+
         .header h1 {
           font-size: 20px;
         }
         .header p {
           font-size: 12px;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
         }
-        .restaurant-list {
-          flex: 1;
-          min-height: 0;
-        }
+
         .restaurant-item {
-          padding: 12px 14px;
+          padding: 18px;
         }
-        .restaurant-item .item-actions button {
-          min-height: 44px;
-          padding: 8px 14px;
-          font-size: 13px;
-        }
-        .map-area {
-          flex: 1;
-          min-height: 50vh;
-        }
-        #map {
-          min-height: 280px;
-        }
-        .fab {
-          width: 52px;
-          height: 52px;
-          font-size: 24px;
-          bottom: calc(20px + env(safe-area-inset-bottom, 0));
-          right: calc(20px + env(safe-area-inset-right, 0));
-        }
-        .modal-content {
-          width: 94vw;
-          max-width: none;
-          padding: 24px 20px;
-          margin: 16px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-        .modal-content h2 {
+        .restaurant-item h3 {
           font-size: 18px;
         }
-        .btn {
-          min-height: 48px;
-          font-size: 15px;
+        .item-actions button {
+          padding: 12px 0;
+          font-size: 14px;
+        } /* 터치하기 쉽게 확장 */
+
+        .fab {
+          /* 버튼이 바텀 시트 위로 따라다니도록 위치 조정 */
+          bottom: calc(var(--sheet-height, 45vh) + 20px);
+          right: 20px;
+          width: 56px;
+          height: 56px;
+          transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .sidebar.dragging ~ .fab {
+          transition: none;
+        }
+
+        .modal-content {
+          width: 92vw;
+          padding: 24px;
+          max-height: 85vh;
+          overflow-y: auto;
+        }
+      }
+
+      /* PC에서는 손잡이 숨김 */
+      @media (min-width: 769px) {
+        .drag-handle {
+          display: none;
         }
       }
     </style>
   </head>
   <body>
     <div id="app" style="display: contents">
-      <aside class="sidebar">
-        <header class="header">
-          <h1>부천 <span class="accent">맛토리텔링아카데미</span></h1>
+      <aside class="sidebar" id="bottom-sheet">
+        <div class="drag-handle" id="drag-handle"></div>
+        <header class="header" id="sheet-header">
+          <h1>부천 <span class="accent">맛토리텔링 아카데미</span></h1>
           <p>진짜로 우리끼리 보려고 만든 지도</p>
         </header>
         <div class="sidebar-list-wrap">
@@ -804,10 +838,20 @@
         listContainer.style.display = "none";
         btnBackRegion.style.display = "none";
         regionListEl.innerHTML = "";
-        var regions = getRegions();
+        var counts = {};
+        restaurants.forEach(function (r) {
+          var reg = r.region || "기타";
+          counts[reg] = (counts[reg] || 0) + 1;
+        });
+        var regions = Object.keys(counts)
+          .sort()
+          .map(function (n) {
+            return { name: n, count: counts[n] };
+          });
+
         if (regions.length === 0) {
           regionListEl.innerHTML =
-            '<li class="review-empty">등록된 맛집이 없어요.</li>';
+            '<li style="padding:16px; text-align:center; color:#888;">등록된 맛집이 없습니다.</li>';
           return;
         }
         regions.forEach(function (rg) {
@@ -819,25 +863,73 @@
             '</span><span class="region-count">' +
             rg.count +
             "곳</span>";
-          li.addEventListener("click", function () {
+          li.onclick = function () {
             selectedRegion = rg.name;
             showRestaurantList();
-          });
+          };
           regionListEl.appendChild(li);
         });
-      }
 
+        // 📱 모바일 UX: 지역 목록으로 오면 시트를 45% 기본 크기로 원상복구
+        if (window.innerWidth <= 768) {
+          const sheet = document.getElementById("bottom-sheet");
+          if (sheet) {
+            sheet.style.height = "45vh";
+            document.documentElement.style.setProperty(
+              "--sheet-height",
+              "45vh",
+            );
+          }
+        }
+      }
       function showRestaurantList() {
         regionListEl.style.display = "none";
         listContainer.style.display = "";
-        btnBackRegion.style.display = "";
-        var filtered = selectedRegion
-          ? restaurants.filter(function (r) {
-              var reg = r.region && r.region.trim() ? r.region.trim() : "기타";
-              return reg === selectedRegion;
-            })
-          : restaurants;
-        renderRestaurantList(filtered);
+        btnBackRegion.style.display = "block";
+        var filtered = restaurants.filter(function (r) {
+          return (r.region || "기타") === selectedRegion;
+        });
+
+        listContainer.innerHTML = "";
+        filtered.forEach(function (rest) {
+          var li = document.createElement("li");
+          li.className = "restaurant-item";
+          li.innerHTML =
+            '<div onclick="focusRestaurant(' +
+            rest.id +
+            ')">' +
+            "<h3>" +
+            escapeHtml(rest.name) +
+            "</h3><p>" +
+            escapeHtml(rest.desc) +
+            "</p>" +
+            '<span class="review-badge">리뷰 ' +
+            (rest.reviews ? rest.reviews.length : 0) +
+            "개</span></div>" +
+            '<div class="item-actions">' +
+            '<button type="button" class="btn-review" onclick="openReviewModal(' +
+            rest.id +
+            ')">리뷰보기</button>' +
+            '<button type="button" class="btn-edit" onclick="openPwModal(\'edit\', ' +
+            rest.id +
+            ')">수정</button>' +
+            '<button type="button" class="btn-delete" onclick="openPwModal(\'delete\', ' +
+            rest.id +
+            ')">삭제</button></div>';
+          listContainer.appendChild(li);
+        });
+
+        // 📱 모바일 UX: 맛집 목록을 누르면 리스트를 시원하게 보라고 시트를 화면 끝(90%)까지 쫙 펴줌!
+        if (window.innerWidth <= 768) {
+          const sheet = document.getElementById("bottom-sheet");
+          if (sheet) {
+            sheet.style.height = "90vh";
+            document.documentElement.style.setProperty(
+              "--sheet-height",
+              "90vh",
+            );
+          }
+        }
       }
 
       function renderRestaurantList(list) {
@@ -971,11 +1063,19 @@
         modalEdit.classList.remove("active");
       }
 
-      function focusRestaurant(rest) {
+      function focusRestaurant(restParam) {
         if (!map) return;
-        map.setView([rest.lat, rest.lng], 15);
-      }
 
+        var rest =
+          typeof restParam === "object" ? restParam : getRestById(restParam);
+        if (!rest || rest.lat === undefined || rest.lng === undefined) return;
+
+        // 지도 위치만 딱 이동시키고 끝냅니다.
+        map.setView([rest.lat, rest.lng], 15);
+
+        // 🚨 목록을 바닥으로 숨겨버리던 주범(15vh 축소 로직)을 삭제했습니다!
+      }
+      // 👇 실수로 지워졌던 initMap 함수 뚜껑을 다시 살려놓았습니다!
       function initMap() {
         var loadingEl = document.getElementById("map-loading");
         if (loadingEl) loadingEl.style.display = "none";
@@ -1389,6 +1489,69 @@
           showRegionList();
           if (map) updateMarkers();
         }
+      })();
+      // --- 📱 모바일 UX: 바텀 시트 드래그 & 스냅 로직 ---
+      (function initBottomSheet() {
+        const sheet = document.getElementById("bottom-sheet");
+        const header = document.getElementById("sheet-header");
+        const handle = document.getElementById("drag-handle");
+        if (!sheet || !header || !handle) return;
+
+        let startY = 0;
+        let startHeight = 0;
+        let isDragging = false;
+
+        function onDragStart(e) {
+          if (window.innerWidth > 768) return;
+          isDragging = true;
+          startY = e.touches ? e.touches[0].clientY : e.clientY;
+          startHeight = sheet.getBoundingClientRect().height;
+          sheet.classList.add("dragging");
+        }
+
+        function onDragMove(e) {
+          if (!isDragging) return;
+          const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+          const deltaY = startY - currentY;
+          let newHeight = startHeight + deltaY;
+          const vh = window.innerHeight;
+
+          if (newHeight > vh * 0.9) newHeight = vh * 0.9;
+          if (newHeight < vh * 0.15) newHeight = vh * 0.15;
+
+          sheet.style.height = `${newHeight}px`;
+          document.documentElement.style.setProperty(
+            "--sheet-height",
+            `${newHeight}px`,
+          );
+        }
+
+        function onDragEnd() {
+          if (!isDragging) return;
+          isDragging = false;
+          sheet.classList.remove("dragging");
+
+          const currentHeight = sheet.getBoundingClientRect().height;
+          const vh = window.innerHeight;
+          let snapHeight;
+
+          if (currentHeight > vh * 0.65) snapHeight = 90;
+          else if (currentHeight < vh * 0.3) snapHeight = 15;
+          else snapHeight = 45;
+
+          sheet.style.height = `${snapHeight}vh`;
+          document.documentElement.style.setProperty(
+            "--sheet-height",
+            `${snapHeight}vh`,
+          );
+        }
+
+        header.addEventListener("touchstart", onDragStart, { passive: true });
+        handle.addEventListener("touchstart", onDragStart, { passive: true });
+        window.addEventListener("touchmove", onDragMove, { passive: true });
+        window.addEventListener("touchend", onDragEnd);
+        // 👇 굳어짐(프리징) 현상을 완벽 차단하는 생명줄!
+        window.addEventListener("touchcancel", onDragEnd);
       })();
     </script>
   </body>
