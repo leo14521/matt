@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>부천 맛토리텔링아카데미</title>
+    <style>
+      @font-face {
+        font-family: "Paperlogy";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2")
+          format("woff2");
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Paperlogy";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2")
+          format("woff2");
+        font-weight: 700;
+        font-display: swap;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+
+    <style>
+      /* --- 화려하고 깔끔 · 페이퍼로지 --- */
+      :root {
+        --bg: #fafafa;
+        --bg-card: #ffffff;
+        --text-main: #1a1a1a;
+        --text-muted: #5c5c5c;
+        --border: #eee;
+        --accent: #e84a5f;
+        --accent-soft: #ff6b7a;
+        --accent-dark: #c73e4d;
+        --gradient: linear-gradient(135deg, #e84a5f 0%, #ff8e53 100%);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Paperlogy", sans-serif;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text-main);
+        overflow: hidden;
+        display: flex;
+        height: 100vh;
+      }
+
+      .sidebar {
+        width: 360px;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border);
+        padding: 28px 22px;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.3;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+        color: var(--text-main);
+      }
+
+      .header h1 .accent {
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+      }
+
+      .header p {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-bottom: 24px;
+      }
+
+      .sidebar-list-wrap {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-back {
+        font-family: "Paperlogy", sans-serif;
+        font-size: 13px;
+        color: var(--accent);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 0;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+      .sidebar-back:hover {
+        text-decoration: underline;
+      }
+
+      .region-list,
+      .restaurant-list {
+        list-style: none;
+        overflow-y: auto;
+        flex-grow: 1;
+        padding-right: 8px;
+        margin: 0;
+      }
+
+      .region-item {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        padding: 16px 18px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .region-item:hover {
+        border-color: var(--accent);
+        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.15);
+      }
+      .region-item .region-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+      .region-item .region-count {
+        font-size: 14px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .restaurant-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      .restaurant-list::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 6px;
+      }
+
+      .restaurant-item {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        padding: 14px 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .restaurant-item:hover {
+        border-color: var(--accent);
+        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.15);
+      }
+
+      .restaurant-item .item-body {
+        pointer-events: none;
+      }
+
+      .restaurant-item .item-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        pointer-events: auto;
+      }
+
+      .restaurant-item .item-actions button {
+        font-family: "Paperlogy", sans-serif;
+        font-size: 12px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .restaurant-item .btn-review {
+        background: rgba(232, 74, 95, 0.15);
+        color: var(--accent);
+      }
+      .restaurant-item .btn-review:hover {
+        background: rgba(232, 74, 95, 0.25);
+      }
+
+      .restaurant-item .btn-edit {
+        background: rgba(232, 74, 95, 0.12);
+        color: var(--accent);
+      }
+      .restaurant-item .btn-edit:hover {
+        background: rgba(232, 74, 95, 0.2);
+      }
+
+      .restaurant-item .btn-delete {
+        background: rgba(0, 0, 0, 0.06);
+        color: var(--text-muted);
+      }
+      .restaurant-item .btn-delete:hover {
+        background: rgba(232, 74, 95, 0.12);
+        color: var(--accent);
+      }
+
+      .restaurant-item h3 {
+        font-size: 16px;
+        margin-bottom: 4px;
+        color: var(--text-main);
+      }
+
+      .restaurant-item p {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .map-area {
+        flex-grow: 1;
+        position: relative;
+        min-height: 0;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: 300px;
+      }
+
+      .map-area .map-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .fab {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        width: 58px;
+        height: 58px;
+        background: var(--gradient);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        font-size: 28px;
+        font-weight: 300;
+        cursor: pointer;
+        box-shadow: 0 6px 24px rgba(232, 74, 95, 0.4);
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+
+      .fab:hover {
+        transform: scale(1.08);
+        box-shadow: 0 8px 28px rgba(232, 74, 95, 0.5);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+          opacity 0.25s ease,
+          visibility 0.25s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(45, 45, 45, 0.55);
+        z-index: 0;
+      }
+
+      .modal-content {
+        position: relative;
+        z-index: 1;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 36px;
+        border-radius: 16px;
+        width: 400px;
+        max-width: 90vw;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+        transform: scale(0.95);
+        transition: transform 0.25s ease;
+      }
+
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
+      }
+
+      .modal-content h2 {
+        margin-bottom: 20px;
+        font-size: 20px;
+        color: var(--text-main);
+      }
+
+      .input-group {
+        margin-bottom: 18px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .input-group input {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 15px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .input-group input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(232, 74, 95, 0.15);
+      }
+
+      .form-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Paperlogy", sans-serif;
+      }
+
+      .btn-cancel {
+        background: var(--bg);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+      }
+      .btn-cancel:hover {
+        background: var(--border);
+      }
+
+      .btn-submit {
+        background: var(--gradient);
+        color: #fff;
+      }
+      .btn-submit:hover {
+        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.35);
+      }
+
+      /* 리뷰 영역 */
+      .review-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--accent);
+        margin-top: 6px;
+        font-weight: 500;
+      }
+      .review-list {
+        list-style: none;
+        margin: 0 0 16px 0;
+        padding: 0;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .review-list li {
+        padding: 12px;
+        background: var(--bg);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border);
+      }
+      .review-list li:last-child {
+        margin-bottom: 0;
+      }
+      .review-author {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+      .review-content {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+      .review-empty {
+        font-size: 13px;
+        color: var(--text-muted);
+        padding: 16px;
+        text-align: center;
+      }
+      .region-list .review-empty {
+        list-style: none;
+      }
+      .input-group textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: "Paperlogy", sans-serif;
+        resize: vertical;
+        background: var(--bg);
+        color: var(--text-main);
+      }
+      .input-group textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(232, 74, 95, 0.15);
+      }
+
+      /* 모바일 최적화 */
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .sidebar {
+          width: 100%;
+          max-height: 42vh;
+          min-height: 200px;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 16px 20px;
+          flex-shrink: 0;
+        }
+        .header h1 {
+          font-size: 20px;
+        }
+        .header p {
+          font-size: 12px;
+          margin-bottom: 16px;
+        }
+        .restaurant-list {
+          flex: 1;
+          min-height: 0;
+        }
+        .restaurant-item {
+          padding: 12px 14px;
+        }
+        .restaurant-item .item-actions button {
+          min-height: 44px;
+          padding: 8px 14px;
+          font-size: 13px;
+        }
+        .map-area {
+          flex: 1;
+          min-height: 50vh;
+        }
+        #map {
+          min-height: 280px;
+        }
+        .fab {
+          width: 52px;
+          height: 52px;
+          font-size: 24px;
+          bottom: calc(20px + env(safe-area-inset-bottom, 0));
+          right: calc(20px + env(safe-area-inset-right, 0));
+        }
+        .modal-content {
+          width: 94vw;
+          max-width: none;
+          padding: 24px 20px;
+          margin: 16px;
+          max-height: 90vh;
+          overflow-y: auto;
+        }
+        .modal-content h2 {
+          font-size: 18px;
+        }
+        .btn {
+          min-height: 48px;
+          font-size: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" style="display: contents">
+      <aside class="sidebar">
+        <header class="header">
+          <h1>부천 <span class="accent">맛토리텔링아카데미</span></h1>
+          <p>진짜로 우리끼리 보려고 만든 지도</p>
+        </header>
+        <div class="sidebar-list-wrap">
+          <button
+            type="button"
+            class="sidebar-back"
+            id="btn-back-region"
+            style="display: none">
+            ← 지역 목록
+          </button>
+          <ul class="region-list" id="region-list"></ul>
+          <ul
+            class="restaurant-list"
+            id="list-container"
+            style="display: none"></ul>
+        </div>
+      </aside>
+
+      <main class="map-area" id="map-container">
+        <div id="map"></div>
+        <div class="map-loading" id="map-loading">지도를 불러오는 중…</div>
+      </main>
+
+      <button class="fab" id="btn-open-modal">+</button>
+
+      <div class="modal-overlay" id="modal">
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-content">
+          <h2>새로운 맛집 등록 📍</h2>
+          <form id="add-form">
+            <div class="input-group">
+              <label>맛집 이름</label>
+              <input
+                type="text"
+                id="input-name"
+                placeholder="웹툰센터앞 순대트럭"
+                required />
+            </div>
+            <div class="input-group">
+              <label>한 줄 추천사</label>
+              <input
+                type="text"
+                id="input-desc"
+                placeholder="OO님이 일주일에 3번 간다는 그곳..!"
+                required />
+            </div>
+            <div class="input-group">
+              <label>지역 (시·군)</label>
+              <input
+                type="text"
+                id="input-region"
+                placeholder="예: 부천시, 인천광역시"
+                required />
+            </div>
+            <div class="input-group">
+              <label>위치 검색</label>
+              <input
+                type="text"
+                id="input-search"
+                placeholder="인근 역명 또는 주소 (예: 부천역, 부천시 중동)"
+                required
+                autocomplete="off" />
+              <p class="form-hint">
+                맛집의 정확한 주소를 모를 경우 인근 역명을 검색해 주세요.
+              </p>
+            </div>
+            <div class="input-group">
+              <label>등록자 비밀번호</label>
+              <input
+                type="password"
+                id="input-pw"
+                placeholder="수정·삭제 시 사용할 비밀번호"
+                required
+                autocomplete="new-password" />
+              <p class="form-hint">
+                등록자만 이 비밀번호로 수정·삭제할 수 있습니다.
+              </p>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-cancel" id="btn-close-modal">
+                취소
+              </button>
+              <button type="submit" class="btn btn-submit">지도에 박기</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="modal-pw">
+        <div class="modal-backdrop" id="modal-pw-backdrop"></div>
+        <div class="modal-content">
+          <h2>비밀번호 확인</h2>
+          <p class="form-hint" style="margin-bottom: 12px">
+            등록 시 입력한 비밀번호를 입력하세요.
+          </p>
+          <div class="input-group">
+            <input
+              type="password"
+              id="input-pw-check"
+              placeholder="비밀번호"
+              autocomplete="off" />
+          </div>
+          <div class="btn-group">
+            <button type="button" class="btn btn-cancel" id="btn-pw-cancel">
+              취소
+            </button>
+            <button type="button" class="btn btn-submit" id="btn-pw-confirm">
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="modal-edit">
+        <div class="modal-backdrop" id="modal-edit-backdrop"></div>
+        <div class="modal-content">
+          <h2>맛집 수정 ✏️</h2>
+          <form id="edit-form">
+            <input type="hidden" id="edit-id" />
+            <div class="input-group">
+              <label>맛집 이름</label>
+              <input type="text" id="edit-name" required />
+            </div>
+            <div class="input-group">
+              <label>한 줄 추천사</label>
+              <input type="text" id="edit-desc" required />
+            </div>
+            <div class="input-group">
+              <label>지역 (시·군)</label>
+              <input type="text" id="edit-region" placeholder="예: 부천시" />
+            </div>
+            <div class="input-group">
+              <label>위치 검색 (변경 시에만 입력)</label>
+              <input
+                type="text"
+                id="edit-search"
+                placeholder="비워두면 기존 위치 유지"
+                autocomplete="off" />
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-cancel" id="btn-edit-cancel">
+                취소
+              </button>
+              <button type="submit" class="btn btn-submit">수정 완료</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-overlay" id="modal-review">
+        <div class="modal-backdrop" id="modal-review-backdrop"></div>
+        <div class="modal-content">
+          <h2 id="review-modal-title">맛집 리뷰</h2>
+          <p class="form-hint" style="margin-bottom: 12px">
+            부스텔(부천스토리텔링아카데미) 멤버의 실제 리뷰를 남겨보세요.
+          </p>
+          <ul class="review-list" id="review-list"></ul>
+          <form id="review-form">
+            <input type="hidden" id="review-rest-id" />
+            <div class="input-group">
+              <label>부스텔 멤버 이름</label>
+              <input
+                type="text"
+                id="review-author"
+                placeholder="닉네임 또는 이름"
+                required />
+            </div>
+            <div class="input-group">
+              <label>리뷰</label>
+              <textarea
+                id="review-content"
+                placeholder="이 맛집에 대한 솔직한 리뷰를 적어주세요."
+                required></textarea>
+            </div>
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn btn-cancel"
+                id="btn-review-close">
+                닫기
+              </button>
+              <button type="submit" class="btn btn-submit">리뷰 등록</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase: 설정을 가장 먼저 로드해 PC/휴대폰 연동을 보장 -->
+    <script>
+      window.FIREBASE_CONFIG_PLACEHOLDER = {
+        apiKey: "AIzaSyDmj5E_vrh1gA5bQ3CQn1X840w8tBmTYcE",
+        authDomain: "maatzip-dccde.firebaseapp.com",
+        projectId: "maatzip-dccde",
+        storageBucket: "maatzip-dccde.firebasestorage.app",
+        messagingSenderId: "734715366064",
+        appId: "1:734715366064:web:b63e9c8652e58189378975",
+        measurementId: "G-J04MZCE01V",
+      };
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Leaflet + OpenStreetMap: API 키·결제 없이 무료 사용 -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+    <script>
+      let restaurants = [];
+
+      function normalizeRestaurants() {
+        restaurants.forEach(function (r) {
+          r.id = Number(r.id) || r.id;
+          if (r.password == null || String(r.password).trim() === "")
+            r.password = "0000";
+          if (!r.reviews) r.reviews = [];
+          if (!r.region || String(r.region).trim() === "") r.region = "기타";
+        });
+      }
+
+      function getRestById(id) {
+        var numId = Number(id);
+        return restaurants.find(function (r) {
+          return Number(r.id) === numId;
+        });
+      }
+
+      const listContainer = document.getElementById("list-container");
+      const regionListEl = document.getElementById("region-list");
+      const btnBackRegion = document.getElementById("btn-back-region");
+      const mapLoading = document.getElementById("map-loading");
+      const modal = document.getElementById("modal");
+      const modalPw = document.getElementById("modal-pw");
+      const modalEdit = document.getElementById("modal-edit");
+      const modalReview = document.getElementById("modal-review");
+      const btnOpenModal = document.getElementById("btn-open-modal");
+      const btnCloseModal = document.getElementById("btn-close-modal");
+      const addForm = document.getElementById("add-form");
+      const editForm = document.getElementById("edit-form");
+      const reviewForm = document.getElementById("review-form");
+      const inputPwCheck = document.getElementById("input-pw-check");
+      const btnPwCancel = document.getElementById("btn-pw-cancel");
+      const btnPwConfirm = document.getElementById("btn-pw-confirm");
+      const btnEditCancel = document.getElementById("btn-edit-cancel");
+      const btnReviewClose = document.getElementById("btn-review-close");
+
+      let map = null;
+      let markers = [];
+      let pwAction = null;
+      let pwRestId = null;
+      let selectedRegion = null;
+
+      function getRegions() {
+        var counts = {};
+        restaurants.forEach(function (rest) {
+          var r =
+            rest.region && rest.region.trim() ? rest.region.trim() : "기타";
+          counts[r] = (counts[r] || 0) + 1;
+        });
+        return Object.keys(counts)
+          .sort()
+          .map(function (name) {
+            return { name: name, count: counts[name] };
+          });
+      }
+
+      function showRegionList() {
+        selectedRegion = null;
+        regionListEl.style.display = "";
+        listContainer.style.display = "none";
+        btnBackRegion.style.display = "none";
+        regionListEl.innerHTML = "";
+        var regions = getRegions();
+        if (regions.length === 0) {
+          regionListEl.innerHTML =
+            '<li class="review-empty">등록된 맛집이 없어요.</li>';
+          return;
+        }
+        regions.forEach(function (rg) {
+          var li = document.createElement("li");
+          li.className = "region-item";
+          li.innerHTML =
+            '<span class="region-name">' +
+            escapeHtml(rg.name) +
+            '</span><span class="region-count">' +
+            rg.count +
+            "곳</span>";
+          li.addEventListener("click", function () {
+            selectedRegion = rg.name;
+            showRestaurantList();
+          });
+          regionListEl.appendChild(li);
+        });
+      }
+
+      function showRestaurantList() {
+        regionListEl.style.display = "none";
+        listContainer.style.display = "";
+        btnBackRegion.style.display = "";
+        var filtered = selectedRegion
+          ? restaurants.filter(function (r) {
+              var reg = r.region && r.region.trim() ? r.region.trim() : "기타";
+              return reg === selectedRegion;
+            })
+          : restaurants;
+        renderRestaurantList(filtered);
+      }
+
+      function renderRestaurantList(list) {
+        listContainer.innerHTML = "";
+        (list || []).forEach(function (rest) {
+          if (!rest.reviews) rest.reviews = [];
+          var reviewCount = rest.reviews.length;
+          var restId = rest.id;
+          var li = document.createElement("li");
+          li.className = "restaurant-item";
+          li.innerHTML =
+            '<div class="item-body"><h3>' +
+            escapeHtml(rest.name) +
+            "</h3><p>" +
+            escapeHtml(rest.desc) +
+            "</p>" +
+            '<span class="review-badge">리뷰 ' +
+            reviewCount +
+            "개</span></div>" +
+            '<div class="item-actions"><button type="button" class="btn-review" data-rest-id="' +
+            restId +
+            '">리뷰</button><button type="button" class="btn-edit" data-rest-id="' +
+            restId +
+            '">수정</button><button type="button" class="btn-delete" data-rest-id="' +
+            restId +
+            '">삭제</button></div>';
+          li.dataset.id = restId;
+          li.addEventListener("click", function (e) {
+            if (!e.target.closest(".item-actions")) focusRestaurant(rest);
+          });
+          li.querySelector(".btn-review").addEventListener(
+            "click",
+            function (e) {
+              e.stopPropagation();
+              var liEl = e.currentTarget.closest(".restaurant-item");
+              var lid = liEl
+                ? liEl.dataset.id || liEl.getAttribute("data-id")
+                : e.currentTarget.getAttribute("data-rest-id");
+              var r = getRestById(lid);
+              if (r) openReviewModal(r);
+            },
+          );
+          li.querySelector(".btn-edit").addEventListener("click", function (e) {
+            e.stopPropagation();
+            var liEl = e.currentTarget.closest(".restaurant-item");
+            var lid = liEl
+              ? liEl.dataset.id || liEl.getAttribute("data-id")
+              : e.currentTarget.getAttribute("data-rest-id");
+            openPwModal("edit", lid);
+          });
+          li.querySelector(".btn-delete").addEventListener(
+            "click",
+            function (e) {
+              e.stopPropagation();
+              var liEl = e.currentTarget.closest(".restaurant-item");
+              var lid = liEl
+                ? liEl.dataset.id || liEl.getAttribute("data-id")
+                : e.currentTarget.getAttribute("data-rest-id");
+              openPwModal("delete", lid);
+            },
+          );
+          listContainer.appendChild(li);
+        });
+      }
+
+      btnBackRegion.addEventListener("click", showRegionList);
+
+      function openReviewModal(rest) {
+        document.getElementById("review-modal-title").textContent =
+          rest.name + " · 부스텔 리뷰";
+        document.getElementById("review-rest-id").value = rest.id;
+        document.getElementById("review-author").value = "";
+        document.getElementById("review-content").value = "";
+        var listEl = document.getElementById("review-list");
+        listEl.innerHTML = "";
+        if (!rest.reviews || rest.reviews.length === 0) {
+          listEl.innerHTML =
+            '<li class="review-empty">아직 리뷰가 없어요. 첫 리뷰를 남겨보세요!</li>';
+        } else {
+          rest.reviews.forEach(function (r) {
+            var li = document.createElement("li");
+            li.innerHTML =
+              '<div class="review-author">' +
+              escapeHtml(r.author) +
+              '</div><div class="review-content">' +
+              escapeHtml(r.content) +
+              "</div>";
+            listEl.appendChild(li);
+          });
+        }
+        modalReview.classList.add("active");
+      }
+
+      function escapeHtml(s) {
+        var div = document.createElement("div");
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function closeReviewModal() {
+        modalReview.classList.remove("active");
+      }
+
+      function openPwModal(action, restId) {
+        pwAction = action;
+        var num = parseInt(restId, 10);
+        pwRestId = isNaN(num) ? restId : num;
+        inputPwCheck.value = "";
+        modalPw.classList.add("active");
+        inputPwCheck.focus();
+      }
+
+      function closePwModal() {
+        modalPw.classList.remove("active");
+        pwAction = null;
+        pwRestId = null;
+      }
+
+      function openEditModal(rest) {
+        document.getElementById("edit-id").value = rest.id;
+        document.getElementById("edit-name").value = rest.name;
+        document.getElementById("edit-desc").value = rest.desc;
+        document.getElementById("edit-region").value = rest.region || "";
+        document.getElementById("edit-search").value = "";
+        modalEdit.classList.add("active");
+      }
+
+      function closeEditModal() {
+        modalEdit.classList.remove("active");
+      }
+
+      function focusRestaurant(rest) {
+        if (!map) return;
+        map.setView([rest.lat, rest.lng], 15);
+      }
+
+      function initMap() {
+        var loadingEl = document.getElementById("map-loading");
+        if (loadingEl) loadingEl.style.display = "none";
+
+        map = L.map("map").setView([37.5034, 126.766], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
+        updateMarkers();
+      }
+
+      function updateMarkers() {
+        if (!map) return;
+        markers.forEach(function (m) {
+          map.removeLayer(m);
+        });
+        markers = [];
+
+        restaurants.forEach(function (rest) {
+          var cnt = (rest.reviews && rest.reviews.length) || 0;
+          var html =
+            "<div style=\"padding:12px 14px;min-width:160px;font-size:13px;background:#fff;color:#1a1a1a;border-radius:10px;border:1px solid #eee;box-shadow:0 4px 16px rgba(0,0,0,0.08);font-family:'Paperlogy',sans-serif;\"><strong>" +
+            rest.name +
+            '</strong><br/><span style="color:#5c5c5c;">' +
+            rest.desc +
+            '</span><br/><span style="color:#e84a5f;font-size:12px;">부스텔 리뷰 ' +
+            cnt +
+            "개</span></div>";
+          var marker = L.marker([rest.lat, rest.lng])
+            .addTo(map)
+            .bindPopup(html);
+          markers.push(marker);
+        });
+      }
+
+      function updateUI() {
+        if (selectedRegion) showRestaurantList();
+        else showRegionList();
+        if (map) updateMarkers();
+      }
+
+      initMap();
+      // 목록/마커는 Firebase 로드 후 또는 미사용 시 아래 마지막 분기에서 한 번만 표시
+
+      btnOpenModal.addEventListener("click", function () {
+        modal.classList.add("active");
+        document.getElementById("input-name").focus();
+      });
+
+      btnCloseModal.addEventListener("click", function () {
+        modal.classList.remove("active");
+        addForm.reset();
+      });
+
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal || e.target.id === "modal-backdrop") {
+          modal.classList.remove("active");
+          addForm.reset();
+        }
+      });
+
+      addForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = document.getElementById("input-name").value.trim();
+        var desc = document.getElementById("input-desc").value.trim();
+        var searchQuery = document.getElementById("input-search").value.trim();
+        var pw = document.getElementById("input-pw").value.trim();
+        var submitBtn = addForm.querySelector(".btn-submit");
+        if (!searchQuery) {
+          alert("위치 검색어를 입력해 주세요.");
+          return;
+        }
+        if (!pw) {
+          alert("등록자 비밀번호를 입력해 주세요.");
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = "검색 중…";
+        var url =
+          "https://nominatim.openstreetmap.org/search?q=" +
+          encodeURIComponent(searchQuery) +
+          "&format=json&limit=1";
+        fetch(url, {
+          headers: {
+            "Accept-Language": "ko",
+            "User-Agent": "BucheonMatAcademy/1.0",
+          },
+        })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "지도에 박기";
+            if (!data || data.length === 0) {
+              alert(
+                "위치를 찾을 수 없습니다. 인근 역명이나 주소로 다시 검색해 주세요.",
+              );
+              return;
+            }
+            var lat = parseFloat(data[0].lat);
+            var lng = parseFloat(data[0].lon);
+            var region =
+              document.getElementById("input-region").value.trim() || "기타";
+            var newId = Date.now();
+            restaurants.push({
+              id: newId,
+              name: name,
+              desc: desc,
+              lat: lat,
+              lng: lng,
+              password: pw,
+              reviews: [],
+              region: region,
+            });
+            updateUI();
+            focusRestaurant(restaurants[restaurants.length - 1]);
+            modal.classList.remove("active");
+            addForm.reset();
+            if (typeof saveRestaurantsToFirestore === "function")
+              saveRestaurantsToFirestore();
+          })
+          .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "지도에 박기";
+            alert("검색 중 오류가 났습니다. 다시 시도해 주세요.");
+          });
+      });
+
+      btnPwCancel.addEventListener("click", closePwModal);
+      modalPw.addEventListener("click", function (e) {
+        if (e.target.id === "modal-pw-backdrop") closePwModal();
+      });
+      btnPwConfirm.addEventListener("click", function () {
+        var rest = getRestById(pwRestId);
+        if (!rest) {
+          alert("맛집을 찾을 수 없습니다.");
+          closePwModal();
+          return;
+        }
+        var inputPw = String(inputPwCheck.value || "").trim();
+        var expectedPw = String(rest.password || "0000").trim();
+        if (expectedPw !== inputPw) {
+          alert("비밀번호가 일치하지 않습니다.");
+          return;
+        }
+        closePwModal();
+        if (pwAction === "delete") {
+          var deletedId = pwRestId;
+          restaurants = restaurants.filter(function (r) {
+            return Number(r.id) !== Number(pwRestId);
+          });
+          if (typeof removeRestaurantFromFirestore === "function")
+            removeRestaurantFromFirestore(deletedId);
+          else if (typeof saveRestaurantsToFirestore === "function")
+            saveRestaurantsToFirestore();
+          updateUI();
+        } else if (pwAction === "edit") {
+          openEditModal(rest);
+        }
+      });
+
+      btnEditCancel.addEventListener("click", closeEditModal);
+      modalEdit.addEventListener("click", function (e) {
+        if (e.target.id === "modal-edit-backdrop") closeEditModal();
+      });
+      editForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var id = parseInt(document.getElementById("edit-id").value, 10);
+        var name = document.getElementById("edit-name").value.trim();
+        var desc = document.getElementById("edit-desc").value.trim();
+        var searchQuery = document.getElementById("edit-search").value.trim();
+        var rest = getRestById(id);
+        if (!rest) return;
+        rest.name = name;
+        rest.desc = desc;
+        var editRegion = document.getElementById("edit-region").value.trim();
+        if (editRegion) rest.region = editRegion;
+        if (searchQuery) {
+          var url =
+            "https://nominatim.openstreetmap.org/search?q=" +
+            encodeURIComponent(searchQuery) +
+            "&format=json&limit=1";
+          fetch(url, {
+            headers: {
+              "Accept-Language": "ko",
+              "User-Agent": "BucheonMatAcademy/1.0",
+            },
+          })
+            .then(function (r) {
+              return r.json();
+            })
+            .then(function (data) {
+              if (data && data.length > 0) {
+                rest.lat = parseFloat(data[0].lat);
+                rest.lng = parseFloat(data[0].lon);
+              }
+              updateUI();
+              closeEditModal();
+            })
+            .catch(function () {
+              updateUI();
+              closeEditModal();
+            });
+        } else {
+          updateUI();
+          closeEditModal();
+        }
+        if (typeof saveRestaurantsToFirestore === "function")
+          saveRestaurantsToFirestore();
+      });
+
+      btnReviewClose.addEventListener("click", closeReviewModal);
+      modalReview.addEventListener("click", function (e) {
+        if (e.target.id === "modal-review-backdrop") closeReviewModal();
+      });
+      reviewForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var restId = parseInt(
+          document.getElementById("review-rest-id").value,
+          10,
+        );
+        var author = document.getElementById("review-author").value.trim();
+        var content = document.getElementById("review-content").value.trim();
+        var rest = getRestById(restId);
+        if (!rest) return;
+        if (!rest.reviews) rest.reviews = [];
+        rest.reviews.push({
+          id: Date.now(),
+          author: author,
+          content: content,
+          createdAt: new Date().toISOString(),
+        });
+        document.getElementById("review-author").value = "";
+        document.getElementById("review-content").value = "";
+        var listEl = document.getElementById("review-list");
+        listEl.innerHTML = "";
+        rest.reviews.forEach(function (r) {
+          var li = document.createElement("li");
+          li.innerHTML =
+            '<div class="review-author">' +
+            escapeHtml(r.author) +
+            '</div><div class="review-content">' +
+            escapeHtml(r.content) +
+            "</div>";
+          listEl.appendChild(li);
+        });
+        updateUI();
+        if (typeof saveRestaurantsToFirestore === "function")
+          saveRestaurantsToFirestore();
+      });
+
+      normalizeRestaurants();
+
+      function applyFirestoreSnapshot(snap) {
+        restaurants = [];
+        if (snap && !snap.empty) {
+          snap.forEach(function (doc) {
+            var d = doc.data();
+            restaurants.push({
+              id: Number(d.id),
+              name: d.name || "",
+              desc: d.desc || "",
+              lat: Number(d.lat),
+              lng: Number(d.lng),
+              password:
+                d.password != null && d.password !== ""
+                  ? String(d.password)
+                  : "0000",
+              region: d.region || "기타",
+              reviews: Array.isArray(d.reviews) ? d.reviews : [],
+            });
+          });
+          restaurants.sort(function (a, b) {
+            return a.id - b.id;
+          });
+          normalizeRestaurants();
+        }
+        if (selectedRegion) showRestaurantList();
+        else showRegionList();
+        if (map) updateMarkers();
+      }
+
+      function initFirebase() {
+        if (typeof firebase === "undefined" || !firebase.firestore) {
+          showRegionList();
+          if (map) updateMarkers();
+          return;
+        }
+        var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
+        if (!cfg || !cfg.apiKey) {
+          showRegionList();
+          if (map) updateMarkers();
+          return;
+        }
+        try {
+          if (!firebase.apps.length) firebase.initializeApp(cfg);
+          var db = firebase.firestore();
+          // 한 번만 읽는 get 대신 onSnapshot으로 실시간 연동 (PC에서 추가하면 휴대폰에도 즉시 반영)
+          db.collection("restaurants").onSnapshot(
+            function (snap) {
+              applyFirestoreSnapshot(snap);
+            },
+            function (err) {
+              console.warn("Firestore 연동 실패:", err);
+              showRegionList();
+              if (map) updateMarkers();
+            },
+          );
+        } catch (e) {
+          console.warn("Firebase 초기화 실패:", e);
+          showRegionList();
+          if (map) updateMarkers();
+        }
+      }
+      function saveRestaurantsToFirestore() {
+        var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
+        if (
+          typeof firebase === "undefined" ||
+          !firebase.firestore ||
+          !cfg ||
+          !cfg.apiKey
+        )
+          return;
+
+        var db = firebase.firestore();
+        restaurants.forEach(function (r) {
+          db.collection("restaurants")
+            .doc(String(r.id))
+            .set({
+              id: r.id,
+              name: r.name,
+              desc: r.desc,
+              lat: r.lat,
+              lng: r.lng,
+              password: r.password,
+              region: r.region || "기타",
+              reviews: r.reviews || [],
+            })
+            .then(function () {
+              console.log("Firebase 서버 저장 성공! 🍕");
+            })
+            .catch(function (error) {
+              console.error("Firebase 서버 저장 실패 🚨:", error);
+              alert(
+                "서버 저장 실패! F12를 눌러 콘솔 창의 빨간 에러 메시지를 확인해주세요.",
+              );
+            });
+        });
+      }
+
+      function removeRestaurantFromFirestore(restId) {
+        var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
+        if (
+          typeof firebase === "undefined" ||
+          !firebase.firestore ||
+          !cfg ||
+          !cfg.apiKey
+        )
+          return;
+        try {
+          firebase
+            .firestore()
+            .collection("restaurants")
+            .doc(String(restId))
+            .delete();
+        } catch (e) {}
+      }
+
+      (function () {
+        var cfg = window.FIREBASE_CONFIG_PLACEHOLDER;
+        if (cfg && cfg.apiKey) {
+          window.FIREBASE_CONFIG = cfg;
+          regionListEl.innerHTML = '<li class="review-empty">불러오는 중…</li>';
+          regionListEl.style.display = "";
+          listContainer.style.display = "none";
+          initFirebase();
+        } else {
+          showRegionList();
+          if (map) updateMarkers();
+        }
+      })();
+    </script>
+  </body>
+</html>

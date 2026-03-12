@@ -1,0 +1,4 @@
+# Netlify 배포 설정 (정적 사이트)
+[build]
+  publish = "."
+  # 빌드 없이 index.html 등 정적 파일만 배포
