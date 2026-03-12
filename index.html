@@ -845,9 +845,10 @@
         (list || []).forEach(function (rest) {
           if (!rest.reviews) rest.reviews = [];
           var reviewCount = rest.reviews.length;
-          var restId = rest.id;
+          var restIdStr = String(rest.id);
           var li = document.createElement("li");
           li.className = "restaurant-item";
+
           li.innerHTML =
             '<div class="item-body"><h3>' +
             escapeHtml(rest.name) +
@@ -857,48 +858,49 @@
             '<span class="review-badge">리뷰 ' +
             reviewCount +
             "개</span></div>" +
-            '<div class="item-actions"><button type="button" class="btn-review" data-rest-id="' +
-            restId +
-            '">리뷰</button><button type="button" class="btn-edit" data-rest-id="' +
-            restId +
-            '">수정</button><button type="button" class="btn-delete" data-rest-id="' +
-            restId +
-            '">삭제</button></div>';
-          li.dataset.id = restId;
+            '<div class="item-actions">' +
+            '<button type="button" class="btn-review" data-rest-id="' +
+            restIdStr +
+            '">리뷰</button>' +
+            '<button type="button" class="btn-edit" data-rest-id="' +
+            restIdStr +
+            '">수정</button>' +
+            '<button type="button" class="btn-delete" data-rest-id="' +
+            restIdStr +
+            '">삭제</button>' +
+            "</div>";
+
+          li.dataset.id = restIdStr;
+
           li.addEventListener("click", function (e) {
             if (!e.target.closest(".item-actions")) focusRestaurant(rest);
           });
+
           li.querySelector(".btn-review").addEventListener(
             "click",
             function (e) {
               e.stopPropagation();
-              var liEl = e.currentTarget.closest(".restaurant-item");
-              var lid = liEl
-                ? liEl.dataset.id || liEl.getAttribute("data-id")
-                : e.currentTarget.getAttribute("data-rest-id");
-              var r = getRestById(lid);
+              var targetId = e.currentTarget.getAttribute("data-rest-id");
+              var r = getRestById(targetId);
               if (r) openReviewModal(r);
             },
           );
+
           li.querySelector(".btn-edit").addEventListener("click", function (e) {
             e.stopPropagation();
-            var liEl = e.currentTarget.closest(".restaurant-item");
-            var lid = liEl
-              ? liEl.dataset.id || liEl.getAttribute("data-id")
-              : e.currentTarget.getAttribute("data-rest-id");
-            openPwModal("edit", lid);
+            var targetId = e.currentTarget.getAttribute("data-rest-id");
+            openPwModal("edit", targetId);
           });
+
           li.querySelector(".btn-delete").addEventListener(
             "click",
             function (e) {
               e.stopPropagation();
-              var liEl = e.currentTarget.closest(".restaurant-item");
-              var lid = liEl
-                ? liEl.dataset.id || liEl.getAttribute("data-id")
-                : e.currentTarget.getAttribute("data-rest-id");
-              openPwModal("delete", lid);
+              var targetId = e.currentTarget.getAttribute("data-rest-id");
+              openPwModal("delete", targetId);
             },
           );
+
           listContainer.appendChild(li);
         });
       }
@@ -1017,7 +1019,6 @@
       }
 
       initMap();
-      // 목록/마커는 Firebase 로드 후 또는 미사용 시 아래 마지막 분기에서 한 번만 표시
 
       btnOpenModal.addEventListener("click", function () {
         modal.classList.add("active");
@@ -1051,6 +1052,7 @@
           alert("등록자 비밀번호를 입력해 주세요.");
           return;
         }
+
         submitBtn.disabled = true;
         submitBtn.textContent = "검색 중…";
         var url =
@@ -1080,7 +1082,8 @@
             var region =
               document.getElementById("input-region").value.trim() || "기타";
             var newId = Date.now();
-            restaurants.push({
+
+            var newRest = {
               id: newId,
               name: name,
               desc: desc,
@@ -1089,13 +1092,15 @@
               password: pw,
               reviews: [],
               region: region,
-            });
+            };
+            restaurants.push(newRest);
             updateUI();
-            focusRestaurant(restaurants[restaurants.length - 1]);
+            focusRestaurant(newRest);
             modal.classList.remove("active");
             addForm.reset();
-            if (typeof saveRestaurantsToFirestore === "function")
-              saveRestaurantsToFirestore();
+
+            if (typeof saveSingleRestaurantToFirestore === "function")
+              saveSingleRestaurantToFirestore(newRest);
           })
           .catch(function () {
             submitBtn.disabled = false;
@@ -1108,6 +1113,16 @@
       modalPw.addEventListener("click", function (e) {
         if (e.target.id === "modal-pw-backdrop") closePwModal();
       });
+
+      // 엔터키를 치면 확인 버튼이 눌리도록 추가!
+      inputPwCheck.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          btnPwConfirm.click();
+        }
+      });
+
+      // --- 🚨 버그가 해결된 비밀번호 확인 로직 ---
       btnPwConfirm.addEventListener("click", function () {
         var rest = getRestById(pwRestId);
         if (!rest) {
@@ -1121,18 +1136,23 @@
           alert("비밀번호가 일치하지 않습니다.");
           return;
         }
+
+        // 👉 핵심 해결 포인트: 창을 닫기(closePwModal) 전에 현재 상태를 안전하게 저장해둡니다!
+        var currentAction = pwAction;
+        var currentTargetId = pwRestId;
+
+        // 이제 안전하게 기억을 지우고 창을 닫습니다.
         closePwModal();
-        if (pwAction === "delete") {
-          var deletedId = pwRestId;
+
+        // 저장해둔 상태를 바탕으로 로직을 실행합니다.
+        if (currentAction === "delete") {
           restaurants = restaurants.filter(function (r) {
-            return Number(r.id) !== Number(pwRestId);
+            return Number(r.id) !== Number(currentTargetId);
           });
-          if (typeof removeRestaurantFromFirestore === "function")
-            removeRestaurantFromFirestore(deletedId);
-          else if (typeof saveRestaurantsToFirestore === "function")
-            saveRestaurantsToFirestore();
           updateUI();
-        } else if (pwAction === "edit") {
+          if (typeof removeRestaurantFromFirestore === "function")
+            removeRestaurantFromFirestore(currentTargetId);
+        } else if (currentAction === "edit") {
           openEditModal(rest);
         }
       });
@@ -1141,6 +1161,7 @@
       modalEdit.addEventListener("click", function (e) {
         if (e.target.id === "modal-edit-backdrop") closeEditModal();
       });
+
       editForm.addEventListener("submit", function (e) {
         e.preventDefault();
         var id = parseInt(document.getElementById("edit-id").value, 10);
@@ -1149,10 +1170,16 @@
         var searchQuery = document.getElementById("edit-search").value.trim();
         var rest = getRestById(id);
         if (!rest) return;
+
         rest.name = name;
         rest.desc = desc;
         var editRegion = document.getElementById("edit-region").value.trim();
         if (editRegion) rest.region = editRegion;
+
+        var submitBtn = editForm.querySelector(".btn-submit");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "저장 중...";
+
         if (searchQuery) {
           var url =
             "https://nominatim.openstreetmap.org/search?q=" +
@@ -1171,26 +1198,34 @@
               if (data && data.length > 0) {
                 rest.lat = parseFloat(data[0].lat);
                 rest.lng = parseFloat(data[0].lon);
+              } else {
+                alert("변경된 위치를 찾을 수 없어 기존 위치를 유지합니다.");
               }
-              updateUI();
-              closeEditModal();
+              finishEdit(rest, submitBtn);
             })
             .catch(function () {
-              updateUI();
-              closeEditModal();
+              alert("위치 검색 오류가 발생했습니다. 기존 위치로 저장합니다.");
+              finishEdit(rest, submitBtn);
             });
         } else {
-          updateUI();
-          closeEditModal();
+          finishEdit(rest, submitBtn);
         }
-        if (typeof saveRestaurantsToFirestore === "function")
-          saveRestaurantsToFirestore();
       });
+
+      function finishEdit(rest, btn) {
+        updateUI();
+        closeEditModal();
+        btn.disabled = false;
+        btn.textContent = "수정 완료";
+        if (typeof saveSingleRestaurantToFirestore === "function")
+          saveSingleRestaurantToFirestore(rest);
+      }
 
       btnReviewClose.addEventListener("click", closeReviewModal);
       modalReview.addEventListener("click", function (e) {
         if (e.target.id === "modal-review-backdrop") closeReviewModal();
       });
+
       reviewForm.addEventListener("submit", function (e) {
         e.preventDefault();
         var restId = parseInt(
@@ -1208,6 +1243,7 @@
           content: content,
           createdAt: new Date().toISOString(),
         });
+
         document.getElementById("review-author").value = "";
         document.getElementById("review-content").value = "";
         var listEl = document.getElementById("review-list");
@@ -1223,8 +1259,8 @@
           listEl.appendChild(li);
         });
         updateUI();
-        if (typeof saveRestaurantsToFirestore === "function")
-          saveRestaurantsToFirestore();
+        if (typeof saveSingleRestaurantToFirestore === "function")
+          saveSingleRestaurantToFirestore(rest);
       });
 
       normalizeRestaurants();
@@ -1259,38 +1295,26 @@
       }
 
       function initFirebase() {
-        if (typeof firebase === "undefined" || !firebase.firestore) {
-          showRegionList();
-          if (map) updateMarkers();
-          return;
-        }
+        if (typeof firebase === "undefined" || !firebase.firestore) return;
         var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
-        if (!cfg || !cfg.apiKey) {
-          showRegionList();
-          if (map) updateMarkers();
-          return;
-        }
+        if (!cfg || !cfg.apiKey) return;
         try {
           if (!firebase.apps.length) firebase.initializeApp(cfg);
           var db = firebase.firestore();
-          // 한 번만 읽는 get 대신 onSnapshot으로 실시간 연동 (PC에서 추가하면 휴대폰에도 즉시 반영)
           db.collection("restaurants").onSnapshot(
             function (snap) {
               applyFirestoreSnapshot(snap);
             },
             function (err) {
               console.warn("Firestore 연동 실패:", err);
-              showRegionList();
-              if (map) updateMarkers();
             },
           );
         } catch (e) {
           console.warn("Firebase 초기화 실패:", e);
-          showRegionList();
-          if (map) updateMarkers();
         }
       }
-      function saveRestaurantsToFirestore() {
+
+      function saveSingleRestaurantToFirestore(targetRest) {
         var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
         if (
           typeof firebase === "undefined" ||
@@ -1300,30 +1324,30 @@
         )
           return;
 
-        var db = firebase.firestore();
-        restaurants.forEach(function (r) {
-          db.collection("restaurants")
-            .doc(String(r.id))
-            .set({
-              id: r.id,
-              name: r.name,
-              desc: r.desc,
-              lat: r.lat,
-              lng: r.lng,
-              password: r.password,
-              region: r.region || "기타",
-              reviews: r.reviews || [],
-            })
-            .then(function () {
-              console.log("Firebase 서버 저장 성공! 🍕");
-            })
-            .catch(function (error) {
-              console.error("Firebase 서버 저장 실패 🚨:", error);
-              alert(
-                "서버 저장 실패! F12를 눌러 콘솔 창의 빨간 에러 메시지를 확인해주세요.",
-              );
-            });
-        });
+        firebase
+          .firestore()
+          .collection("restaurants")
+          .doc(String(targetRest.id))
+          .set({
+            id: targetRest.id,
+            name: targetRest.name,
+            desc: targetRest.desc,
+            lat: targetRest.lat,
+            lng: targetRest.lng,
+            password: targetRest.password,
+            region: targetRest.region || "기타",
+            reviews: targetRest.reviews || [],
+          })
+          .then(function () {
+            console.log("서버에 반영 완료! 🚀");
+          })
+          .catch(function (error) {
+            alert(
+              "🚨 서버 저장/수정 실패!\n에러 내용: " +
+                error.message +
+                "\n\n(Firebase 보안 규칙이 잠겨있는 것 같습니다.)",
+            );
+          });
       }
 
       function removeRestaurantFromFirestore(restId) {
@@ -1335,13 +1359,22 @@
           !cfg.apiKey
         )
           return;
-        try {
-          firebase
-            .firestore()
-            .collection("restaurants")
-            .doc(String(restId))
-            .delete();
-        } catch (e) {}
+
+        firebase
+          .firestore()
+          .collection("restaurants")
+          .doc(String(restId))
+          .delete()
+          .then(function () {
+            console.log("서버에서 삭제 완료! 🗑️");
+          })
+          .catch(function (error) {
+            alert(
+              "🚨 서버 삭제 실패!\n에러 내용: " +
+                error.message +
+                "\n\n(Firebase 보안 규칙이 잠겨있는 것 같습니다.)",
+            );
+          });
       }
 
       (function () {
