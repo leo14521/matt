@@ -1819,7 +1819,7 @@
           부일숯불갈비: "서울특별시 영등포구 영등포동",
           "할매 닭한마리": "경기도 부천시 중동",
           동암도깨비: "인천광역시 부평구 십정동",
-          주주총회회센타: "경기도 부천시 상동",
+          주주총회회센타: "경기도 시흥시 대야동",
           막퍼주정육점식당: "경기도 이천시 신둔면",
           "삼부자 이천쌀밥집": "경기도 이천시 신둔면",
         };
@@ -1833,6 +1833,12 @@
           r.menu = r.menu || "직접 가서 확인해보세요!";
           r.revisit = r.revisit || "must";
           r.likes = Number(r.likes) || 0;
+
+          if (r.normSido && r.normSigungu) {
+            r.normDong = r.normDong || "동네 미상";
+            r.region = [r.normSido, r.normSigungu, r.normDong].filter(Boolean).join(" ").trim();
+            return;
+          }
 
           if (
             r.reviews &&
@@ -2589,6 +2595,9 @@
           rest.name = document.getElementById("edit-name").value;
           rest.category = document.getElementById("edit-category").value;
           rest.region = document.getElementById("edit-region").value;
+          rest.normSido = document.getElementById("edit-sido").value;
+          rest.normSigungu = document.getElementById("edit-sigungu").value;
+          rest.normDong = document.getElementById("edit-dong").value || "동네 미상";
           var sq = document.getElementById("edit-search").value;
           if (sq) {
             fetch(
@@ -2635,6 +2644,9 @@
               menu: d.menu,
               revisit: d.revisit,
               likes: Number(d.likes) || 0,
+              normSido: d.normSido || null,
+              normSigungu: d.normSigungu || null,
+              normDong: d.normDong || null,
             });
           });
           restaurants.sort((a, b) => a.id - b.id);
