@@ -3,20 +3,17 @@
   <head>
     <link rel="icon" href="./images/favicon.png" type="image/png" />
     <link rel="shortcut icon" href="./favicon.png" type="image/png" />
-
     <meta property="og:title" content="부천 맛토리텔링아카데미" />
     <meta
       property="og:description"
       content="진짜로 우리끼리 보려고 만든 맛집 지도 🤤" />
     <meta property="og:image" content="./favicon.png" />
-
-    <meta
-      property="og:image"
-      content="https://maatzip.netlify.app/favicon.png" />
-
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>부천 맛토리텔링아카데미</title>
+
     <style>
       @font-face {
         font-family: "Paperlogy";
@@ -32,14 +29,7 @@
         font-weight: 700;
         font-display: swap;
       }
-    </style>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin="" />
 
-    <style>
       /* --- 화려하고 깔끔 · 페이퍼로지 --- */
       :root {
         --bg: #fafafa;
@@ -47,9 +37,8 @@
         --text-main: #1a1a1a;
         --text-muted: #5c5c5c;
         --border: #eee;
+        --border-focus: #dcdcdc;
         --accent: #e84a5f;
-        --accent-soft: #ff6b7a;
-        --accent-dark: #c73e4d;
         --gradient: linear-gradient(135deg, #e84a5f 0%, #ff8e53 100%);
       }
 
@@ -59,7 +48,6 @@
         padding: 0;
         font-family: "Paperlogy", sans-serif;
       }
-
       body {
         background: var(--bg);
         color: var(--text-main);
@@ -69,14 +57,16 @@
       }
 
       .sidebar {
-        width: 360px;
+        width: 380px;
         background: var(--bg-card);
         border-right: 1px solid var(--border);
-        padding: 28px 22px;
         display: flex;
         flex-direction: column;
         z-index: 10;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
+      }
+      .sidebar-inner {
+        padding: 28px 22px 12px;
       }
 
       .header h1 {
@@ -87,7 +77,6 @@
         margin-bottom: 8px;
         color: var(--text-main);
       }
-
       .header h1 .accent {
         background: var(--gradient);
         -webkit-background-clip: text;
@@ -95,11 +84,36 @@
         background-clip: text;
         font-weight: 700;
       }
-
       .header p {
         color: var(--text-muted);
         font-size: 13px;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
+      }
+
+      /* 메인 탭 */
+      .main-tabs {
+        display: flex;
+        background: var(--bg);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 16px;
+      }
+      .main-tabs button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .main-tabs button.active {
+        background: var(--bg-card);
+        color: var(--text-main);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
       }
 
       .sidebar-list-wrap {
@@ -107,136 +121,232 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
-      }
-
-      .sidebar-back {
-        font-family: "Paperlogy", sans-serif;
-        font-size: 13px;
-        color: var(--accent);
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 8px 0;
-        margin-bottom: 12px;
-        font-weight: 600;
-      }
-      .sidebar-back:hover {
-        text-decoration: underline;
-      }
-
-      .region-list,
-      .restaurant-list {
-        list-style: none;
-        overflow-y: auto;
-        flex-grow: 1;
-        padding-right: 8px;
-        margin: 0;
-      }
-
-      .region-item {
         background: var(--bg);
-        border: 1px solid var(--border);
-        padding: 16px 18px;
-        border-radius: 12px;
-        margin-bottom: 12px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+      }
+      .tools-header {
+        display: flex;
+        flex-direction: column;
+        padding: 12px 22px;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        gap: 12px;
+      }
+      .top-tools {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
-      .region-item:hover {
-        border-color: var(--accent);
-        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.15);
-      }
-      .region-item .region-name {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-main);
-      }
-      .region-item .region-count {
-        font-size: 14px;
+      .sidebar-back {
+        font-size: 13px;
         color: var(--accent);
+        background: rgba(232, 74, 95, 0.1);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 6px 10px;
         font-weight: 600;
+        transition: background 0.2s;
+      }
+      .sort-select {
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--text-main);
+        font-size: 13px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        outline: none;
+        cursor: pointer;
       }
 
-      .restaurant-list::-webkit-scrollbar {
+      .chips-container {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+        touch-action: pan-x;
+      }
+      .chips-container::-webkit-scrollbar {
+        display: none;
+      }
+      .chip {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .chip.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(232, 74, 95, 0.3);
+      }
+
+      .region-list,
+      .restaurant-list,
+      .ranking-list {
+        list-style: none;
+        overflow-y: auto;
+        flex-grow: 1;
+        padding: 16px 22px;
+        margin: 0;
+      }
+      .restaurant-list::-webkit-scrollbar,
+      .ranking-list::-webkit-scrollbar {
         width: 6px;
       }
-      .restaurant-list::-webkit-scrollbar-thumb {
-        background: var(--border);
+      .restaurant-list::-webkit-scrollbar-thumb,
+      .ranking-list::-webkit-scrollbar-thumb {
+        background: var(--border-focus);
         border-radius: 6px;
       }
 
+      .region-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 18px 20px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      }
+      .region-item .region-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      .region-item .region-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        background: var(--bg);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+
       .restaurant-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 18px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        position: relative;
+      }
+      .cat-badge {
+        display: inline-block;
+        padding: 3px 8px;
         background: var(--bg);
         border: 1px solid var(--border);
-        padding: 14px 16px;
-        border-radius: 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .restaurant-item h3 {
+        font-size: 18px;
+        margin-bottom: 6px;
+        color: var(--text-main);
+      }
+      .restaurant-item p {
+        font-size: 13px;
+        color: var(--text-muted);
         margin-bottom: 12px;
-        transition: all 0.2s ease;
+        line-height: 1.4;
+      }
+
+      /* 랭킹 아이템 디자인 */
+      .ranking-item {
+        display: flex;
+        align-items: center;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 16px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         cursor: pointer;
       }
-
-      .restaurant-item:hover {
-        border-color: var(--accent);
-        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.15);
+      .rank-medal {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+        border-radius: 50%;
+        background: var(--bg);
+        margin-right: 16px;
+        flex-shrink: 0;
+      }
+      .rank-1 .rank-medal {
+        background: #fff9e6;
+        color: #d4af37;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        border: 2px solid #ffd700;
+      }
+      .rank-2 .rank-medal {
+        background: #f5f5f5;
+        color: #7d7d7d;
+        border: 2px solid #c0c0c0;
+      }
+      .rank-3 .rank-medal {
+        background: #fff0e6;
+        color: #a0522d;
+        border: 2px solid #cd7f32;
+      }
+      .ranking-info {
+        flex-grow: 1;
+      }
+      .ranking-info h4 {
+        font-size: 16px;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+      .ranking-score {
+        font-size: 12px;
+        color: var(--accent);
+        font-weight: 600;
+        background: rgba(232, 74, 95, 0.1);
+        padding: 2px 8px;
+        border-radius: 10px;
+        display: inline-block;
       }
 
-      .restaurant-item .item-body {
-        pointer-events: none;
-      }
-
-      .restaurant-item .item-actions {
+      .item-actions {
         display: flex;
         gap: 8px;
-        margin-top: 10px;
         pointer-events: auto;
       }
-
-      .restaurant-item .item-actions button {
+      .item-actions button {
+        flex: 1;
         font-family: "Paperlogy", sans-serif;
         font-size: 12px;
-        padding: 6px 12px;
+        padding: 8px 0;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 600;
       }
-
-      .restaurant-item .btn-review {
-        background: rgba(232, 74, 95, 0.15);
+      .btn-review {
+        background: rgba(232, 74, 95, 0.1);
         color: var(--accent);
       }
-      .restaurant-item .btn-review:hover {
-        background: rgba(232, 74, 95, 0.25);
-      }
-
-      .restaurant-item .btn-edit {
-        background: rgba(232, 74, 95, 0.12);
-        color: var(--accent);
-      }
-      .restaurant-item .btn-edit:hover {
-        background: rgba(232, 74, 95, 0.2);
-      }
-
-      .restaurant-item .btn-delete {
-        background: rgba(0, 0, 0, 0.06);
-        color: var(--text-muted);
-      }
-      .restaurant-item .btn-delete:hover {
-        background: rgba(232, 74, 95, 0.12);
-        color: var(--accent);
-      }
-
-      .restaurant-item h3 {
-        font-size: 16px;
-        margin-bottom: 4px;
-        color: var(--text-main);
-      }
-
-      .restaurant-item p {
-        font-size: 13px;
+      .btn-edit {
+        background: var(--bg);
+        border: 1px solid var(--border);
         color: var(--text-muted);
       }
 
@@ -245,28 +355,30 @@
         position: relative;
         min-height: 0;
       }
-
       #map {
         width: 100%;
         height: 100%;
-        min-height: 300px;
       }
-
-      .map-area .map-loading {
+      .map-loading {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         color: var(--text-muted);
         font-size: 14px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px 20px;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
       }
 
       .fab {
         position: fixed;
         bottom: 32px;
         right: 32px;
-        width: 58px;
-        height: 58px;
+        width: 60px;
+        height: 60px;
         background: var(--gradient);
         color: #fff;
         border: none;
@@ -275,16 +387,10 @@
         font-weight: 300;
         cursor: pointer;
         box-shadow: 0 6px 24px rgba(232, 74, 95, 0.4);
-        transition: all 0.25s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 9999;
-      }
-
-      .fab:hover {
-        transform: scale(1.08);
-        box-shadow: 0 8px 28px rgba(232, 74, 95, 0.5);
       }
 
       .modal-overlay {
@@ -301,299 +407,757 @@
           opacity 0.25s ease,
           visibility 0.25s ease;
       }
-
       .modal-overlay.active {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
       }
-
       .modal-backdrop {
         position: absolute;
         inset: 0;
-        background: rgba(45, 45, 45, 0.55);
+        background: rgba(20, 20, 20, 0.6);
+        backdrop-filter: blur(4px);
         z-index: 0;
       }
-
       .modal-content {
         position: relative;
         z-index: 1;
         background: var(--bg-card);
-        border: 1px solid var(--border);
-        padding: 36px;
-        border-radius: 16px;
-        width: 400px;
+        padding: 32px;
+        border-radius: 20px;
+        width: 420px;
         max-width: 90vw;
+        max-height: 90vh;
+        overflow-y: auto;
         box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
-        transform: scale(0.95);
-        transition: transform 0.25s ease;
+        transform: translateY(20px);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
-
       .modal-overlay.active .modal-content {
-        transform: scale(1);
+        transform: translateY(0);
       }
-
       .modal-content h2 {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         font-size: 20px;
         color: var(--text-main);
+        font-weight: 700;
       }
 
       .input-group {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
-
       .input-group label {
         display: block;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         font-size: 13px;
         color: var(--text-muted);
+        font-weight: 600;
       }
-
-      .input-group input {
+      .input-group input,
+      .input-group select,
+      .input-group textarea {
         width: 100%;
         background: var(--bg);
         border: 1px solid var(--border);
         color: var(--text-main);
-        padding: 12px 14px;
-        border-radius: 8px;
+        padding: 14px;
+        border-radius: 10px;
         font-size: 15px;
         outline: none;
-        transition: border-color 0.2s;
+        transition: all 0.2s;
+        appearance: none;
       }
-
-      .input-group input:focus {
+      .input-group select {
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a1a1a%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px top 50%;
+        background-size: 10px auto;
+        padding-right: 30px;
+        cursor: pointer;
+      }
+      .input-group input:focus,
+      .input-group select:focus,
+      .input-group textarea:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 3px rgba(232, 74, 95, 0.15);
+        background: var(--bg-card);
       }
 
-      .form-hint {
-        font-size: 12px;
-        color: var(--text-muted);
-        margin-top: 6px;
+      .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .radio-label {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--bg);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .radio-label:hover {
+        border-color: var(--accent);
+      }
+      .radio-label input {
+        display: none;
+      }
+      .radio-label input:checked + span {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .radio-label:has(input:checked) {
+        border-color: var(--accent);
+        background: rgba(232, 74, 95, 0.05);
+        box-shadow: 0 0 0 1px var(--accent);
       }
 
       .btn-group {
         display: flex;
-        gap: 10px;
-        margin-top: 24px;
+        gap: 12px;
+        margin-top: 28px;
       }
-
       .btn {
         flex: 1;
-        padding: 12px;
+        padding: 14px;
         border: none;
         border-radius: 10px;
         font-size: 15px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
-        font-family: "Paperlogy", sans-serif;
       }
-
       .btn-cancel {
         background: var(--bg);
-        color: var(--text-main);
+        color: var(--text-muted);
         border: 1px solid var(--border);
       }
-      .btn-cancel:hover {
-        background: var(--border);
-      }
-
       .btn-submit {
         background: var(--gradient);
         color: #fff;
       }
-      .btn-submit:hover {
-        box-shadow: 0 4px 16px rgba(232, 74, 95, 0.35);
-      }
 
-      /* 리뷰 영역 */
+      /* 맛토리텔링 리뷰 & 칭호 뱃지 디자인 */
       .review-badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         font-size: 12px;
         color: var(--accent);
-        margin-top: 6px;
-        font-weight: 500;
+        font-weight: 600;
       }
       .review-list {
         list-style: none;
-        margin: 0 0 16px 0;
+        margin: 0 0 20px 0;
         padding: 0;
-        max-height: 200px;
+        max-height: 300px;
         overflow-y: auto;
       }
       .review-list li {
-        padding: 12px;
+        padding: 16px;
         background: var(--bg);
-        border-radius: 10px;
-        margin-bottom: 8px;
+        border-radius: 12px;
+        margin-bottom: 12px;
         border: 1px solid var(--border);
       }
-      .review-list li:last-child {
-        margin-bottom: 0;
+
+      .review-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 10px;
+      }
+      .review-author-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
       .review-author {
-        font-weight: 600;
-        font-size: 13px;
+        font-weight: 700;
+        font-size: 14px;
         color: var(--text-main);
-        margin-bottom: 4px;
+      }
+
+      /* 레벨업 뱃지 시스템 */
+      .level-badge {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        display: inline-block;
+        width: fit-content;
+      }
+      .level-1 {
+        background: #e8eaf6;
+        color: #3f51b5;
+      } /* 수습 */
+      .level-2 {
+        background: #e3f2fd;
+        color: #1976d2;
+      } /* 프로 */
+      .level-3 {
+        background: #f3e5f5;
+        color: #8e24aa;
+      } /* 수석 */
+      .level-4 {
+        background: #fff8e1;
+        color: #f57f17;
+        border: 1px solid #fbc02d;
+      } /* 전설 */
+
+      .taste-profile {
+        font-size: 11px;
+        background: #e0e0e0;
+        color: #424242;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 6px;
+        font-weight: 600;
+      }
+
+      .review-revisit {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .revisit-must {
+        background: rgba(232, 74, 95, 0.1);
+        color: var(--accent);
+      }
+      .revisit-soso {
+        background: #eee;
+        color: #555;
+      }
+      .revisit-no {
+        background: #f0f0f0;
+        color: #999;
+        text-decoration: line-through;
+      }
+
+      .review-menu {
+        font-size: 13px;
+        color: #2c6e49;
+        background: #e8f5e9;
+        padding: 4px 8px;
+        border-radius: 6px;
+        display: inline-block;
+        margin-bottom: 8px;
+        font-weight: 600;
       }
       .review-content {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--text-muted);
         line-height: 1.5;
       }
       .review-empty {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--text-muted);
-        padding: 16px;
+        padding: 20px;
         text-align: center;
-      }
-      .region-list .review-empty {
-        list-style: none;
-      }
-      .input-group textarea {
-        width: 100%;
-        min-height: 80px;
-        padding: 12px 14px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        font-size: 15px;
-        font-family: "Paperlogy", sans-serif;
-        resize: vertical;
         background: var(--bg);
-        color: var(--text-main);
-      }
-      .input-group textarea:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(232, 74, 95, 0.15);
+        border-radius: 12px;
       }
 
-      /* 모바일 최적화 */
-      /* 📱 모바일 최적화 (지도 상단, 리스트 하단 분할 및 터치 최적화) */
-      /* 📱 모바일 UX: 네이티브 앱 스타일 바텀 시트 */
       @media (max-width: 768px) {
         body {
           flex-direction: column;
           overflow: hidden;
           position: relative;
         }
-        /* 드래그 손잡이 부분 브라우저 간섭 차단 (굳어짐 방지 핵심!) */
         #drag-handle,
-        #sheet-header {
-          touch-action: none;
+        .sidebar-inner {
+          touch-action: pan-y;
         }
         .map-area {
           position: absolute;
           inset: 0;
           width: 100%;
-          height: 100vh; /* 지도는 항상 전체 화면 */
+          height: 100vh;
           z-index: 1;
         }
-
         .sidebar {
           position: fixed;
           bottom: 0;
           left: 0;
           right: 0;
           width: 100%;
-          height: 45vh; /* 기본적으로 화면의 45%만 차지 */
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px); /* 뒤에 비치는 지도 블러 처리 */
+          height: 50vh;
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(12px);
           border-radius: 24px 24px 0 0;
-          box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
-          padding: 12px 16px 20px;
+          box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15);
           z-index: 100;
-          transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 부드러운 스냅 애니메이션 */
+          transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1);
           border: none;
         }
-
         .sidebar.dragging {
           transition: none;
-        } /* 드래그 중에는 애니메이션 끄기 */
-
-        /* 드래그 손잡이 디자인 */
+        }
         .drag-handle {
-          width: 40px;
+          width: 44px;
           height: 5px;
-          background: #ccc;
+          background: #ddd;
           border-radius: 3px;
-          margin: 0 auto 12px;
+          margin: 12px auto;
           flex-shrink: 0;
         }
-
-        .header h1 {
-          font-size: 20px;
+        .sidebar-inner {
+          padding: 0 20px 12px;
         }
-        .header p {
-          font-size: 12px;
-          margin-bottom: 12px;
-        }
-
-        .restaurant-item {
-          padding: 18px;
-        }
-        .restaurant-item h3 {
-          font-size: 18px;
-        }
-        .item-actions button {
-          padding: 12px 0;
-          font-size: 14px;
-        } /* 터치하기 쉽게 확장 */
-
         .fab {
-          /* 버튼이 바텀 시트 위로 따라다니도록 위치 조정 */
-          bottom: calc(var(--sheet-height, 45vh) + 20px);
+          bottom: calc(var(--sheet-height, 50vh) + 20px);
           right: 20px;
-          width: 56px;
-          height: 56px;
           transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .sidebar.dragging ~ .fab {
           transition: none;
         }
-
         .modal-content {
           width: 92vw;
           padding: 24px;
-          max-height: 85vh;
-          overflow-y: auto;
         }
       }
-
-      /* PC에서는 손잡이 숨김 */
       @media (min-width: 769px) {
         .drag-handle {
           display: none;
         }
       }
+
+      /* --- 카테고리 스와이프 고정 버그 해결 --- */
+      .chips-container {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 8px; /* 스크롤바 공간 확보 */
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch; /* iOS 스와이프 부드럽게 */
+      }
+      .chips-container::-webkit-scrollbar {
+        display: none;
+      } /* 스크롤바 숨김 */
+
+      /* --- 익명 / 맛토리텔러 모드 선택 토글 UI --- */
+      .mode-toggle-wrap {
+        display: flex;
+        background: var(--bg);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border);
+      }
+      .mode-toggle-wrap label {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .mode-toggle-wrap input[type="radio"] {
+        display: none;
+      }
+      .mode-toggle-wrap input[type="radio"]:checked + span {
+        display: block;
+        background: var(--bg-card);
+        color: var(--accent);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      /* --- 다이어리 감성의 맛토리텔링 리뷰 카드 --- */
+      .story-card {
+        background: #fffdf9; /* 따뜻한 종이 질감 색상 */
+        border: 1px solid #eaddcf;
+        border-left: 4px solid var(--accent);
+        box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.04);
+        padding: 18px;
+        border-radius: 4px 12px 12px 4px;
+        margin-bottom: 14px;
+        position: relative;
+      }
+      .story-card::before {
+        content: "❝";
+        font-size: 32px;
+        color: rgba(232, 74, 95, 0.1);
+        position: absolute;
+        top: 10px;
+        right: 16px;
+        font-family: serif;
+      }
+
+      /* 맛토리텔러 프로필 뷰 (신규) */
+      .teller-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      }
+      .teller-item:hover {
+        border-color: var(--accent);
+      }
+      .teller-profile {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .teller-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+      .teller-stat {
+        font-size: 12px;
+        color: var(--accent);
+        font-weight: 600;
+        background: rgba(232, 74, 95, 0.1);
+        padding: 4px 8px;
+        border-radius: 10px;
+      }
+
+      /* --- 광역/기초자치단체 계층화 (아코디언 UI) --- */
+      .sido-item {
+        margin-bottom: 12px;
+      }
+      .sido-header {
+        margin-bottom: 0 !important;
+      }
+      .sigungu-list {
+        list-style: none;
+        padding: 6px 16px 8px;
+        background: #fffdf9;
+        border-radius: 0 0 14px 14px;
+        margin-top: -8px;
+        border: 1px solid var(--border);
+        border-top: none;
+      }
+      .sigungu-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.2s;
+        border-bottom: 1px dashed var(--border);
+      }
+      .sigungu-item:last-child {
+        border-bottom: none;
+      }
+      .sigungu-item:hover {
+        background: rgba(232, 74, 95, 0.05);
+      }
+      .sigungu-name {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+      .sigungu-item:hover .sigungu-name {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .sigungu-count {
+        font-size: 12px;
+        font-weight: 700;
+        color: #aaa;
+      }
+
+      /* --- 📖 동화책/엽서 감성의 스토리북 모달 UI --- */
+      .storybook-container {
+        background: #fffdf9;
+        border: 1px solid #eaddcf;
+        border-radius: 12px;
+        padding: 24px;
+        position: relative;
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.02);
+      }
+      .storybook-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 16px;
+        bottom: 0;
+        width: 2px;
+        background: rgba(232, 74, 95, 0.1);
+      }
+      .story-header {
+        margin-bottom: 20px;
+        padding-left: 12px;
+      }
+      .story-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+      .story-meta {
+        font-size: 13px;
+        color: var(--accent);
+        font-weight: 600;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .story-body {
+        padding: 20px 16px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #333;
+        position: relative;
+        font-family: "Paperlogy", serif;
+      }
+      .story-body::before {
+        content: "❝";
+        font-size: 40px;
+        color: rgba(232, 74, 95, 0.15);
+        position: absolute;
+        top: 0px;
+        left: -4px;
+        line-height: 1;
+      }
+      .story-body::after {
+        content: "❞";
+        font-size: 40px;
+        color: rgba(232, 74, 95, 0.15);
+        position: absolute;
+        bottom: -20px;
+        right: 8px;
+        line-height: 1;
+      }
+
+      .story-footer {
+        border-top: 1px dashed #eaddcf;
+        padding-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .story-menu-pick {
+        background: #e8f5e9;
+        color: #2c6e49;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .story-evaluation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg);
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .story-author-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      /* --- 🗺️ 3-Depth 지역 계층화 아코디언 UI --- */
+      .depth1-item {
+        margin-bottom: 12px;
+      }
+      .depth1-header {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        padding: 18px 20px;
+        border-radius: 14px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      }
+      .depth1-header:hover {
+        border-color: var(--accent);
+      }
+
+      .depth2-list {
+        list-style: none;
+        margin: 4px 0 0 12px;
+        border-left: 2px solid var(--border);
+        padding-left: 8px;
+      }
+      .depth2-header {
+        padding: 12px 14px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 15px;
+        border-radius: 8px;
+        transition: background 0.2s;
+      }
+      .depth2-header:hover {
+        background: rgba(0, 0, 0, 0.03);
+        color: var(--accent);
+      }
+
+      .depth3-list {
+        list-style: none;
+        margin: 2px 0 6px 16px;
+        border-left: 1px dashed #ccc;
+        padding-left: 10px;
+      }
+      .depth3-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-muted);
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+      .depth3-item:hover {
+        background: rgba(232, 74, 95, 0.08);
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .count-badge {
+        font-size: 12px;
+        font-weight: 700;
+        color: #999;
+        background: var(--bg);
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
     </style>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
   </head>
   <body>
     <div id="app" style="display: contents">
       <aside class="sidebar" id="bottom-sheet">
         <div class="drag-handle" id="drag-handle"></div>
-        <header class="header" id="sheet-header">
-          <h1>부천 <span class="accent">맛토리텔링 아카데미</span></h1>
-          <p>진짜로 우리끼리 보려고 만든 지도</p>
-        </header>
-        <div class="sidebar-list-wrap">
-          <button
-            type="button"
-            class="sidebar-back"
-            id="btn-back-region"
-            style="display: none">
-            ← 지역 목록
-          </button>
-          <ul class="region-list" id="region-list"></ul>
-          <ul
-            class="restaurant-list"
-            id="list-container"
-            style="display: none"></ul>
+        <div class="sidebar-inner" id="sheet-header">
+          <header class="header">
+            <h1>부천 <span class="accent">맛토리텔러스</span></h1>
+            <p>우리끼리 은밀하게 공유하는 찐 맛집 이야기 🤫</p>
+          </header>
+
+          <div class="main-tabs">
+            <button class="tab-btn active" id="tab-map">🗺️ 맛집 지도</button>
+            <button class="tab-btn" id="tab-rank">🏆 맛토리랭킹</button>
+            <button class="tab-btn" id="tab-teller">👤 맛토리텔러</button>
+          </div>
+        </div>
+
+        <div
+          id="view-map"
+          style="display: flex; flex-direction: column; flex: 1; min-height: 0">
+          <div class="tools-header" id="tools-header" style="display: none">
+            <div class="top-tools">
+              <button type="button" class="sidebar-back" id="btn-back-region">
+                ← 지역선택
+              </button>
+              <select class="sort-select" id="sort-select">
+                <option value="new">✨ 최신등록순</option>
+                <option value="likes">👍 따봉많은순</option>
+                <option value="name">📝 이름순</option>
+              </select>
+            </div>
+            <div class="chips-container" id="category-chips">
+              <button class="chip active" data-cat="전체">전체</button>
+              <button class="chip" data-cat="한식">🍚 한식</button>
+              <button class="chip" data-cat="양식">🍝 양식</button>
+              <button class="chip" data-cat="일식">🍣 일식</button>
+              <button class="chip" data-cat="중식">🍜 중식</button>
+              <button class="chip" data-cat="카페/디저트">
+                ☕ 카페/디저트
+              </button>
+              <button class="chip" data-cat="술집">🍻 술집</button>
+              <button class="chip" data-cat="기타">💭 기타</button>
+            </div>
+          </div>
+          <div class="sidebar-list-wrap">
+            <ul class="region-list" id="region-list"></ul>
+            <ul
+              class="restaurant-list"
+              id="list-container"
+              style="display: none"></ul>
+          </div>
+        </div>
+
+        <div
+          id="view-rank"
+          style="
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            background: var(--bg);
+          ">
+          <div style="padding: 16px 22px 0">
+            <p
+              style="
+                font-size: 13px;
+                color: var(--text-muted);
+                text-align: center;
+                background: var(--bg-card);
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+              ">
+              순위 기준: 맛토리텔러들의 <b>"🔥 무조건 또 감"</b> 득표수
+            </p>
+          </div>
+          <ul class="ranking-list" id="ranking-container"></ul>
+        </div>
+
+        <div
+          id="view-teller"
+          style="
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            background: var(--bg);
+          ">
+          <div style="padding: 16px 22px 0">
+            <p
+              style="
+                font-size: 13px;
+                color: var(--text-muted);
+                text-align: center;
+                background: var(--bg-card);
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+              "
+              id="teller-guide">
+              이야기를 들려준 <b>맛토리텔러</b>를 선택해보세요!
+            </p>
+          </div>
+          <ul class="ranking-list" id="teller-container"></ul>
         </div>
       </aside>
 
@@ -602,66 +1166,169 @@
         <div class="map-loading" id="map-loading">지도를 불러오는 중…</div>
       </main>
 
-      <button class="fab" id="btn-open-modal">+</button>
+      <button class="fab" id="btn-open-modal" title="맛집 등록하기">+</button>
 
       <div class="modal-overlay" id="modal">
         <div class="modal-backdrop" id="modal-backdrop"></div>
-        <div class="modal-content">
-          <h2>새로운 맛집 등록 📍</h2>
+        <div class="modal-content" style="width: 460px">
+          <h2>맛집 이야기 남기기 ✍️</h2>
           <form id="add-form">
-            <div class="input-group">
-              <label>맛집 이름</label>
-              <input
-                type="text"
-                id="input-name"
-                placeholder="웹툰센터앞 순대트럭"
-                required />
+            <div class="mode-toggle-wrap">
+              <label>
+                <input
+                  type="radio"
+                  name="add-mode"
+                  value="public"
+                  checked
+                  onchange="toggleAddMode(this.value)" />
+                <span>👑 내 닉네임 걸고 쓰기</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="add-mode"
+                  value="secret"
+                  onchange="toggleAddMode(this.value)" />
+                <span>🤫 조용히 익명으로 쓰기</span>
+              </label>
             </div>
-            <div class="input-group">
-              <label>한 줄 추천사</label>
-              <input
-                type="text"
-                id="input-desc"
-                placeholder="OO님이 일주일에 3번 간다는 그곳..!"
-                required />
+
+            <div id="add-author-section" style="display: flex; gap: 8px">
+              <div class="input-group" style="flex: 1">
+                <input
+                  type="text"
+                  id="add-author"
+                  placeholder="닉네임 (칭호 성장!)"
+                  required />
+              </div>
+              <div class="input-group" style="flex: 1">
+                <select id="add-taste" required>
+                  <option value="😎 잡식주의" selected>😎 잡식주의</option>
+                  <option value="👶 초딩입맛">👶 초딩입맛</option>
+                  <option value="👴 찐아재입맛">👴 찐아재입맛</option>
+                  <option value="🔥 맵부심">🔥 맵부심</option>
+                  <option value="🍰 디저트광">🍰 디저트광</option>
+                  <option value="🥗 다이어터">🥗 다이어터</option>
+                </select>
+              </div>
             </div>
-            <div class="input-group">
-              <label>지역 (시·군)</label>
-              <input
-                type="text"
-                id="input-region"
-                placeholder="예: 부천시, 인천광역시"
-                required />
+
+            <hr
+              style="
+                border: 0;
+                border-top: 1px dashed var(--border);
+                margin: 8px 0 20px;
+              " />
+
+            <div style="display: flex; gap: 8px">
+              <div class="input-group" style="flex: 2">
+                <label>맛집 이름</label>
+                <input
+                  type="text"
+                  id="input-name"
+                  placeholder="식당 이름"
+                  required />
+              </div>
+              <div class="input-group" style="flex: 1">
+                <label>테마</label>
+                <select id="input-category" required>
+                  <option value="한식" selected>🍚 한식</option>
+                  <option value="양식">🍝 양식</option>
+                  <option value="일식">🍣 일식</option>
+                  <option value="중식">🍜 중식</option>
+                  <option value="카페/디저트">☕ 카페/디저트</option>
+                  <option value="술집">🍻 술집</option>
+                  <option value="기타">💭 기타</option>
+                </select>
+              </div>
             </div>
+
             <div class="input-group">
-              <label>위치 검색</label>
+              <label>지역 (시·도 / 시·군·구 / 동·읍·면)</label>
+              <div style="display: flex; gap: 6px">
+                <select id="input-sido" required style="flex: 1">
+                  <option value="" disabled selected>시/도</option>
+                </select>
+                <select id="input-sigungu" required disabled style="flex: 1">
+                  <option value="" disabled selected>시/군/구</option>
+                </select>
+                <input
+                  type="text"
+                  id="input-dong"
+                  placeholder="무슨 동? (예: 중동)"
+                  required
+                  style="flex: 1" />
+              </div>
+              <input type="hidden" id="input-region" />
+            </div>
+
+            <div class="input-group">
+              <label>지도 위치 검색</label>
               <input
                 type="text"
                 id="input-search"
-                placeholder="인근 역명 또는 주소 (예: 부천역, 부천시 중동)"
+                placeholder="예: 부천역, 서울시청"
                 required
                 autocomplete="off" />
-              <p class="form-hint">
-                동 or 근처 역 이름만 입력 (외국지도앱이라 정확한 주소 인식못함)
-              </p>
             </div>
+
             <div class="input-group">
-              <label>등록자 비밀번호</label>
+              <label>이 집의 원픽 메뉴는? 🍽️</label>
+              <input
+                type="text"
+                id="add-menu"
+                placeholder="무조건 시켜야 하는 메뉴 하나!"
+                required />
+            </div>
+
+            <div class="input-group">
+              <label>맛집 한 줄 이야기 (스토리) 📖</label>
+              <textarea
+                id="input-desc"
+                placeholder="웨이팅 꿀팁, 분위기, 맛의 감동을 자유롭게 적어주세요."
+                required
+                style="min-height: 80px"></textarea>
+            </div>
+
+            <div class="input-group">
+              <label>평가 (재방문 의사)</label>
+              <div class="radio-group">
+                <label class="radio-label"
+                  ><input
+                    type="radio"
+                    name="add-revisit"
+                    value="must"
+                    checked /><span>🔥 내돈내산 무조건 또 감</span></label
+                >
+                <label class="radio-label"
+                  ><input type="radio" name="add-revisit" value="soso" /><span
+                    >🤔 누가 사주면 감</span
+                  ></label
+                >
+                <label class="radio-label"
+                  ><input type="radio" name="add-revisit" value="no" /><span
+                    >🤐 한 번 경험한 걸로 족함</span
+                  ></label
+                >
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>수정/삭제 비밀번호</label>
               <input
                 type="password"
                 id="input-pw"
-                placeholder="수정·삭제 시 사용할 비밀번호"
                 required
                 autocomplete="new-password" />
-              <p class="form-hint">
-                등록자만 이 비밀번호로 수정·삭제할 수 있습니다.
-              </p>
             </div>
+
             <div class="btn-group">
               <button type="button" class="btn btn-cancel" id="btn-close-modal">
                 취소
               </button>
-              <button type="submit" class="btn btn-submit">지도에 박기</button>
+              <button type="submit" class="btn btn-submit">
+                지도에 이야기 새기기
+              </button>
             </div>
           </form>
         </div>
@@ -669,23 +1336,15 @@
 
       <div class="modal-overlay" id="modal-pw">
         <div class="modal-backdrop" id="modal-pw-backdrop"></div>
-        <div class="modal-content">
-          <h2>비밀번호 확인</h2>
-          <p class="form-hint" style="margin-bottom: 12px">
-            등록 시 입력한 비밀번호를 입력하세요.
-          </p>
+        <div class="modal-content" style="width: 340px">
+          <h2>비밀번호 확인 🔒</h2>
           <div class="input-group">
-            <input
-              type="password"
-              id="input-pw-check"
-              placeholder="비밀번호"
-              autocomplete="off" />
+            <input type="password" id="input-pw-check" autocomplete="off" />
           </div>
           <div class="btn-group">
             <button type="button" class="btn btn-cancel" id="btn-pw-cancel">
-              취소
-            </button>
-            <button type="button" class="btn btn-submit" id="btn-pw-confirm">
+              취소</button
+            ><button type="button" class="btn btn-submit" id="btn-pw-confirm">
               확인
             </button>
           </div>
@@ -695,79 +1354,81 @@
       <div class="modal-overlay" id="modal-edit">
         <div class="modal-backdrop" id="modal-edit-backdrop"></div>
         <div class="modal-content">
-          <h2>맛집 수정 ✏️</h2>
+          <h2>정보 수정 ✏️</h2>
           <form id="edit-form">
             <input type="hidden" id="edit-id" />
             <div class="input-group">
-              <label>맛집 이름</label>
-              <input type="text" id="edit-name" required />
+              <label>맛집 이름</label
+              ><input type="text" id="edit-name" required />
             </div>
             <div class="input-group">
-              <label>한 줄 추천사</label>
-              <input type="text" id="edit-desc" required />
+              <label>테마</label
+              ><select id="edit-category" required>
+                <option value="한식">🍚 한식</option>
+                <option value="양식">🍝 양식</option>
+                <option value="일식">🍣 일식</option>
+                <option value="중식">🍜 중식</option>
+                <option value="카페/디저트">☕ 카페/디저트</option>
+                <option value="술집">🍻 술집</option>
+                <option value="기타">💭 기타</option>
+              </select>
             </div>
             <div class="input-group">
-              <label>지역 (시·군)</label>
-              <input type="text" id="edit-region" placeholder="예: 부천시" />
+              <label>지역 (시·도 / 시·군·구 / 동·읍·면)</label>
+              <div style="display: flex; gap: 6px">
+                <select id="edit-sido" required style="flex: 1"></select
+                ><select
+                  id="edit-sigungu"
+                  required
+                  disabled
+                  style="flex: 1"></select
+                ><input
+                  type="text"
+                  id="edit-dong"
+                  placeholder="예: 중동"
+                  required
+                  style="flex: 1" />
+              </div>
+              <input type="hidden" id="edit-region" />
             </div>
             <div class="input-group">
-              <label>위치 검색 (변경 시에만 입력)</label>
-              <input
-                type="text"
-                id="edit-search"
-                placeholder="비워두면 기존 위치 유지"
-                autocomplete="off" />
+              <label>위치 검색 (변경 시)</label
+              ><input type="text" id="edit-search" autocomplete="off" />
             </div>
             <div class="btn-group">
               <button type="button" class="btn btn-cancel" id="btn-edit-cancel">
-                취소
-              </button>
-              <button type="submit" class="btn btn-submit">수정 완료</button>
+                취소</button
+              ><button type="submit" class="btn btn-submit">수정 완료</button>
             </div>
           </form>
         </div>
       </div>
 
-      <div class="modal-overlay" id="modal-review">
-        <div class="modal-backdrop" id="modal-review-backdrop"></div>
-        <div class="modal-content">
-          <h2 id="review-modal-title">맛집 리뷰</h2>
-          <p class="form-hint" style="margin-bottom: 12px">
-            부스텔(부천스토리텔링아카데미) 멤버의 실제 리뷰를 남겨보세요.
-          </p>
-          <ul class="review-list" id="review-list"></ul>
-          <form id="review-form">
-            <input type="hidden" id="review-rest-id" />
-            <div class="input-group">
-              <label>부스텔 멤버 이름</label>
-              <input
-                type="text"
-                id="review-author"
-                placeholder="닉네임 또는 이름"
-                required />
-            </div>
-            <div class="input-group">
-              <label>리뷰</label>
-              <textarea
-                id="review-content"
-                placeholder="이 맛집에 대한 솔직한 리뷰를 적어주세요."
-                required></textarea>
-            </div>
-            <div class="btn-group">
-              <button
-                type="button"
-                class="btn btn-cancel"
-                id="btn-review-close">
-                닫기
-              </button>
-              <button type="submit" class="btn btn-submit">리뷰 등록</button>
-            </div>
-          </form>
+      <div class="modal-overlay" id="modal-story">
+        <div class="modal-backdrop" id="modal-story-backdrop"></div>
+        <div
+          class="modal-content"
+          style="background: transparent; box-shadow: none; padding: 0">
+          <div class="storybook-container" id="story-content-area"></div>
+          <div style="text-align: center; margin-top: 16px">
+            <button
+              class="btn btn-cancel"
+              id="btn-story-close"
+              style="
+                background: rgba(0, 0, 0, 0.5);
+                color: #fff;
+                border: none;
+                padding: 10px 24px;
+                border-radius: 20px;
+                backdrop-filter: blur(4px);
+              ">
+              덮기 ✖
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Firebase: 설정을 가장 먼저 로드해 PC/휴대폰 연동을 보장 -->
     <script>
       window.FIREBASE_CONFIG_PLACEHOLDER = {
         apiKey: "AIzaSyDmj5E_vrh1gA5bQ3CQn1X840w8tBmTYcE",
@@ -781,350 +1442,1016 @@
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <!-- Leaflet + OpenStreetMap: API 키·결제 없이 무료 사용 -->
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
       let restaurants = [];
+      let currentCategory = "전체";
+      let currentSort = "new";
+      let currentTab = "map";
 
+      // 대한민국 행정구역 데이터
+      const regionData = {
+        서울특별시: [
+          "강남구",
+          "강동구",
+          "강북구",
+          "강서구",
+          "관악구",
+          "광진구",
+          "구로구",
+          "금천구",
+          "노원구",
+          "도봉구",
+          "동대문구",
+          "동작구",
+          "마포구",
+          "서대문구",
+          "서초구",
+          "성동구",
+          "성북구",
+          "송파구",
+          "양천구",
+          "영등포구",
+          "용산구",
+          "은평구",
+          "종로구",
+          "중구",
+          "중랑구",
+        ],
+        부산광역시: [
+          "강서구",
+          "금정구",
+          "기장군",
+          "남구",
+          "동구",
+          "동래구",
+          "부산진구",
+          "북구",
+          "사상구",
+          "사하구",
+          "서구",
+          "수영구",
+          "연제구",
+          "영도구",
+          "중구",
+          "해운대구",
+        ],
+        대구광역시: [
+          "군위군",
+          "남구",
+          "달서구",
+          "달성군",
+          "동구",
+          "북구",
+          "서구",
+          "수성구",
+          "중구",
+        ],
+        인천광역시: [
+          "강화군",
+          "계양구",
+          "남동구",
+          "동구",
+          "미추홀구",
+          "부평구",
+          "서구",
+          "연수구",
+          "옹진군",
+          "중구",
+        ],
+        광주광역시: ["광산구", "남구", "동구", "북구", "서구"],
+        대전광역시: ["대덕구", "동구", "서구", "유성구", "중구"],
+        울산광역시: ["남구", "동구", "북구", "울주군", "중구"],
+        세종특별자치시: ["세종특별자치시"],
+        경기도: [
+          "가평군",
+          "고양시",
+          "과천시",
+          "광명시",
+          "광주시",
+          "구리시",
+          "군포시",
+          "김포시",
+          "남양주시",
+          "동두천시",
+          "부천시",
+          "성남시",
+          "수원시",
+          "시흥시",
+          "안산시",
+          "안성시",
+          "안양시",
+          "양주시",
+          "양평군",
+          "여주시",
+          "연천군",
+          "오산시",
+          "용인시",
+          "의왕시",
+          "의정부시",
+          "이천시",
+          "파주시",
+          "평택시",
+          "포천시",
+          "하남시",
+          "화성시",
+        ],
+        강원특별자치도: [
+          "강릉시",
+          "고성군",
+          "동해시",
+          "삼척시",
+          "속초시",
+          "양구군",
+          "양양군",
+          "영월군",
+          "원주시",
+          "인제군",
+          "정선군",
+          "철원군",
+          "춘천시",
+          "태백시",
+          "평창군",
+          "홍천군",
+          "화천군",
+          "횡성군",
+        ],
+        충청북도: [
+          "괴산군",
+          "단양군",
+          "보은군",
+          "영동군",
+          "옥천군",
+          "음성군",
+          "제천시",
+          "증평군",
+          "진천군",
+          "청주시",
+          "충주시",
+        ],
+        충청남도: [
+          "계룡시",
+          "공주시",
+          "금산군",
+          "논산시",
+          "당진시",
+          "보령시",
+          "부여군",
+          "서산시",
+          "서천군",
+          "아산시",
+          "예산군",
+          "천안시",
+          "청양군",
+          "태안군",
+          "홍성군",
+        ],
+        전북특별자치도: [
+          "고창군",
+          "군산시",
+          "김제시",
+          "남원시",
+          "무주군",
+          "부안군",
+          "순창군",
+          "완주군",
+          "익산시",
+          "임실군",
+          "장수군",
+          "전주시",
+          "정읍시",
+          "진안군",
+        ],
+        전라남도: [
+          "강진군",
+          "고흥군",
+          "곡성군",
+          "광양시",
+          "구례군",
+          "나주시",
+          "담양군",
+          "목포시",
+          "무안군",
+          "보성군",
+          "순천시",
+          "신안군",
+          "여수시",
+          "영광군",
+          "영암군",
+          "완도군",
+          "장성군",
+          "장흥군",
+          "진도군",
+          "함평군",
+          "해남군",
+          "화순군",
+        ],
+        경상북도: [
+          "경산시",
+          "경주시",
+          "고령군",
+          "구미시",
+          "김천시",
+          "문경시",
+          "봉화군",
+          "상주시",
+          "성주군",
+          "안동시",
+          "영덕군",
+          "영양군",
+          "영주시",
+          "영천시",
+          "예천군",
+          "울릉군",
+          "울진군",
+          "의성군",
+          "청도군",
+          "청송군",
+          "칠곡군",
+          "포항시",
+        ],
+        경상남도: [
+          "거제시",
+          "거창군",
+          "고성군",
+          "김해시",
+          "남해군",
+          "밀양시",
+          "사천시",
+          "산청군",
+          "양산시",
+          "의령군",
+          "진주시",
+          "창녕군",
+          "창원시",
+          "통영시",
+          "하동군",
+          "함안군",
+          "함양군",
+          "합천군",
+        ],
+        제주특별자치도: ["서귀포시", "제주시"],
+      };
+
+      // 드롭다운 + 동 텍스트 연동 로직
+      function setupRegionDropdowns(sidoId, sigunguId, dongId, hiddenId) {
+        const sidoSel = document.getElementById(sidoId);
+        const sigunguSel = document.getElementById(sigunguId);
+        const dongInput = document.getElementById(dongId);
+        const hiddenReg = document.getElementById(hiddenId);
+
+        sigunguSel.innerHTML =
+          '<option value="" disabled selected>시/군/구</option>';
+        Object.keys(regionData).forEach((sido) =>
+          sidoSel.add(new Option(sido, sido)),
+        );
+
+        const updateHidden = () => {
+          hiddenReg.value =
+            `${sidoSel.value || ""} ${sigunguSel.value || ""} ${dongInput.value.trim()}`.trim();
+        };
+
+        sidoSel.addEventListener("change", (e) => {
+          sigunguSel.innerHTML =
+            '<option value="" disabled selected>시/군/구</option>';
+          if (regionData[e.target.value]) {
+            regionData[e.target.value].forEach((sig) =>
+              sigunguSel.add(new Option(sig, sig)),
+            );
+            sigunguSel.disabled = false;
+          }
+          updateHidden();
+        });
+
+        sigunguSel.addEventListener("change", updateHidden);
+        dongInput.addEventListener("input", updateHidden);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        setupRegionDropdowns(
+          "input-sido",
+          "input-sigungu",
+          "input-dong",
+          "input-region",
+        );
+        setupRegionDropdowns(
+          "edit-sido",
+          "edit-sigungu",
+          "edit-dong",
+          "edit-region",
+        );
+      });
+
+      function toggleAddMode(mode) {
+        const authorSection = document.getElementById("add-author-section");
+        const authorInput = document.getElementById("add-author");
+        if (mode === "secret") {
+          authorSection.style.display = "none";
+          authorInput.required = false;
+        } else {
+          authorSection.style.display = "flex";
+          authorInput.required = true;
+        }
+      }
+
+      // 1. 기존 DB 데이터를 3-Depth로 강제 분석 및 정규화하는 마법사
       function normalizeRestaurants() {
-        restaurants.forEach(function (r) {
+        const addressMap = {
+          인하찹쌀순대: "경기도 부천시 송내동",
+          "이서방 양념치킨": "경기도 부천시 심곡본동",
+          자니덤플링: "서울특별시 용산구 이태원동",
+          상도곱창: "서울특별시 동작구 상도동",
+          "개성만두 궁": "서울특별시 종로구 관훈동",
+          "원조마늘통닭 문래본점": "서울특별시 영등포구 문래동",
+          화목기사식당: "서울특별시 서초구 반포동",
+          향방: "서울시 강남구 신사동",
+          일미감자탕동태탕: "경기도 부천시 신중동",
+          신촌기사식당: "서울시 강서구 방화동",
+          광교그로서란트: "경기도 수원시 이의동",
+          "비밀베이커리 부천상동점": "경기도 부천시 상동",
+          "마루 돈가스": "서울특별시 마포구 합정동",
+          데이아: "경기도 부천시 중동",
+          "마므레 크로와상": "경기도 부천시 상동",
+          천운양꼬치: "서울특별시 서초구 양재동",
+          "백년불고기 신중동점": "경기도 부천시 중동",
+          이조보쌈: "서울특별시 영등포구 당산동",
+          리즈커리: "서울특별시 영등포구 당산동",
+          "YM COFFEE PROJECT 연신내": "서울특별시 은평구 대조동",
+          커피한약방: "서울특별시 중구 을지로2가",
+          "돌다리보쌈 칼국수": "경기도 구리시 수택동",
+          이든고기국수: "경기도 부천시 상동",
+          경주식당: "서울특별시 마포구 상수동",
+          눈나무집: "서울특별시 종로구 삼청동",
+          부다스벨리: "서울특별시 서초구 반포동",
+          더리얼치즈버거: "서울특별시 마포구 서교동",
+          FOWS: "서울특별시 종로구 삼청동",
+          마타렐로: "인천광역시 연수구 송도동",
+          "블루스모크 BBQ": "경기도 김포시 하성면",
+          댓잎갈비: "서울특별시 용산구 보광동",
+          해동복국: "서울시 영등포구 여의도동",
+          "심야식당 소소": "경기도 부천시 송내동",
+          압구정미역: "서울특별시 강남구 신사동",
+          "한남동 한방통닭": "서울특별시 용산구 한남동",
+          챠크라: "서울특별시 용산구 한남동",
+          유목민몽골: "서울특별시 중구 광희동 ",
+          백년손님: "서울특별시 용산구 보광동",
+          동아냉면: "서울특별시 용산구 보광동",
+          신사만장어: "서울특별시 강남구 신사동",
+          산들애쌈밥두루치기: "경기도 광명시",
+          어곳간: "경기도 부천시 상동",
+          "선술집 청춘": "경기도 부천시 역곡동",
+          무화과식당: "경기도 부천시 중동",
+          옛말서울불고기: "서울특별시 마포구 상수동",
+          대금간장게장: "경기도 고양시 일산동구 설문동",
+          복성원: "경기도 부천시 원미동",
+          즐거운다락방: "경기도 부천시 중동",
+          육영토종한우: "서울특별시 영등포구 당산동",
+          강남: "서울특별시 영등포구 당산동",
+          멕시코식당: "서울특별시 마포구 합정동",
+          "공릉동 삼성곱창": "서울특별시 노원구 공릉동",
+          리듬앤버거: "경기도 성남시 분당구 판교동",
+          다람쥐마을누룽지백숙: "경기도 고양시 풍동",
+          "우동 우키야": "경기도 부천시 중동",
+          경인면옥: "인천광역시 중구 내동",
+          "이자카야 춘": "서울특별시 노원구 공릉동",
+          고서옛날창평국밥: "전라남도 담양군 고서면",
+          부일숯불갈비: "서울특별시 영등포구 영등포동",
+          "할매 닭한마리": "경기도 부천시 중동",
+          동암도깨비: "인천광역시 부평구 십정동",
+          주주총회회센타: "경기도 부천시 상동",
+          막퍼주정육점식당: "경기도 이천시 신둔면",
+          "삼부자 이천쌀밥집": "경기도 이천시 신둔면",
+        };
+
+        restaurants.forEach((r) => {
           r.id = Number(r.id) || r.id;
-          if (r.password == null || String(r.password).trim() === "")
-            r.password = "0000";
-          if (!r.reviews) r.reviews = [];
-          if (!r.region || String(r.region).trim() === "") r.region = "기타";
+          if (!r.password) r.password = "0000";
+          if (!r.category) r.category = "기타";
+          r.author = r.author || "🤫 익명의 맛잘알";
+          r.tasteProfile = r.tasteProfile || "😎 잡식주의";
+          r.menu = r.menu || "직접 가서 확인해보세요!";
+          r.revisit = r.revisit || "must";
+          r.likes = Number(r.likes) || 0;
+
+          if (
+            r.reviews &&
+            r.reviews.length > 0 &&
+            r.author === "🤫 익명의 맛잘알"
+          ) {
+            r.author = r.reviews[0].author;
+            r.menu = r.reviews[0].menu || r.menu;
+            r.revisit = r.reviews[0].revisit || r.revisit;
+            r.tasteProfile = r.reviews[0].tasteProfile || r.tasteProfile;
+          }
+
+          let sido = "기타지역",
+            sigungu = "기타",
+            dong = "동네 미상";
+
+          let matchedAddress = addressMap[r.name.trim()];
+
+          if (matchedAddress) {
+            let parts = matchedAddress.split(" ");
+            sido = parts[0];
+            sigungu = parts[1];
+            dong = parts.slice(2).join(" ");
+          } else {
+            let rawRegion = (r.region || "").trim();
+            const aliases = {
+              서울시: "서울특별시",
+              서울: "서울특별시",
+              인천시: "인천광역시",
+              인천: "인천광역시",
+              부산시: "부산광역시",
+              대구시: "대구광역시",
+              대전시: "대전광역시",
+              광주시: "광주광역시",
+              울산시: "울산광역시",
+              세종시: "세종특별자치시",
+              강원도: "강원특별자치도",
+              전라북도: "전북특별자치도",
+              전북도: "전북특별자치도",
+              제주도: "제주특별자치도",
+              제주시: "제주특별자치도",
+            };
+
+            for (let alias in aliases) {
+              if (rawRegion.startsWith(alias)) {
+                rawRegion = rawRegion.replace(alias, aliases[alias]).trim();
+                break;
+              }
+            }
+
+            let parts = rawRegion.split(" ").filter((p) => p);
+            if (parts.length > 0) {
+              if (typeof regionData !== "undefined" && regionData[parts[0]]) {
+                sido = parts[0];
+                sigungu = parts[1] || "세부구역 미상";
+                dong = parts.slice(2).join(" ") || "동네 미상";
+              } else {
+                let foundSido = null;
+                if (typeof regionData !== "undefined") {
+                  for (let s in regionData) {
+                    if (regionData[s].includes(parts[0])) {
+                      foundSido = s;
+                      break;
+                    }
+                  }
+                }
+                if (foundSido) {
+                  sido = foundSido;
+                  sigungu = parts[0];
+                  dong = parts.slice(1).join(" ") || "동네 미상";
+                } else {
+                  sigungu = parts[0];
+                  dong = parts.slice(1).join(" ") || "동네 미상";
+                }
+              }
+            }
+          }
+
+          r.normSido = sido;
+          r.normSigungu = sigungu;
+          r.normDong = dong;
+          r.region = `${sido} ${sigungu} ${dong}`.trim();
         });
       }
 
       function getRestById(id) {
-        var numId = Number(id);
-        return restaurants.find(function (r) {
-          return Number(r.id) === numId;
+        return restaurants.find((r) => Number(r.id) === Number(id));
+      }
+      function getCategoryEmoji(cat) {
+        const emojis = {
+          한식: "🍚",
+          양식: "🍝",
+          일식: "🍣",
+          중식: "🍜",
+          "카페/디저트": "☕",
+          술집: "🍻",
+        };
+        return emojis[cat] || "💭";
+      }
+      function escapeHtml(s) {
+        var div = document.createElement("div");
+        div.textContent = s || "";
+        return div.innerHTML;
+      }
+
+      // 🏆 실시간 닉네임 레벨 계산 함수 (1식당 1스토리 + 기존 리뷰 배열 모두 반영)
+      function getAuthorLevelBadge(authorName) {
+        if (!authorName) return "";
+        let count = 0;
+        restaurants.forEach((r) => {
+          if (r.author === authorName) count += 1;
+          if (r.reviews)
+            count += r.reviews.filter(
+              (rev) => rev.author === authorName,
+            ).length;
         });
+
+        if (count >= 15)
+          return '<span class="level-badge level-4">👑 전설의 맛토리텔러</span>';
+        if (count >= 7)
+          return '<span class="level-badge level-3">📖 수석 맛토리텔러</span>';
+        if (count >= 3)
+          return '<span class="level-badge level-2">🗣️ 프로 맛토리텔러</span>';
+        return '<span class="level-badge level-1">📝 수습 맛토리텔러</span>';
       }
 
       const listContainer = document.getElementById("list-container");
       const regionListEl = document.getElementById("region-list");
-      const btnBackRegion = document.getElementById("btn-back-region");
+      const rankingContainer = document.getElementById("ranking-container");
+      const toolsHeader = document.getElementById("tools-header");
       const mapLoading = document.getElementById("map-loading");
-      const modal = document.getElementById("modal");
-      const modalPw = document.getElementById("modal-pw");
-      const modalEdit = document.getElementById("modal-edit");
-      const modalReview = document.getElementById("modal-review");
-      const btnOpenModal = document.getElementById("btn-open-modal");
-      const btnCloseModal = document.getElementById("btn-close-modal");
-      const addForm = document.getElementById("add-form");
-      const editForm = document.getElementById("edit-form");
-      const reviewForm = document.getElementById("review-form");
-      const inputPwCheck = document.getElementById("input-pw-check");
-      const btnPwCancel = document.getElementById("btn-pw-cancel");
-      const btnPwConfirm = document.getElementById("btn-pw-confirm");
-      const btnEditCancel = document.getElementById("btn-edit-cancel");
-      const btnReviewClose = document.getElementById("btn-review-close");
+      let map = null,
+        markers = [],
+        pwAction = null,
+        pwRestId = null,
+        selectedRegion = null;
 
-      let map = null;
-      let markers = [];
-      let pwAction = null;
-      let pwRestId = null;
-      let selectedRegion = null;
+      document
+        .getElementById("tab-map")
+        .addEventListener("click", () => switchTab("map"));
+      document
+        .getElementById("tab-rank")
+        .addEventListener("click", () => switchTab("rank"));
+      document
+        .getElementById("tab-teller")
+        .addEventListener("click", () => switchTab("teller"));
 
-      function getRegions() {
-        var counts = {};
-        restaurants.forEach(function (rest) {
-          var r =
-            rest.region && rest.region.trim() ? rest.region.trim() : "기타";
-          counts[r] = (counts[r] || 0) + 1;
-        });
-        return Object.keys(counts)
-          .sort()
-          .map(function (name) {
-            return { name: name, count: counts[name] };
-          });
+      function switchTab(tab) {
+        currentTab = tab;
+        document
+          .getElementById("tab-map")
+          .classList.toggle("active", tab === "map");
+        document
+          .getElementById("tab-rank")
+          .classList.toggle("active", tab === "rank");
+        document
+          .getElementById("tab-teller")
+          .classList.toggle("active", tab === "teller");
+        document.getElementById("view-map").style.display =
+          tab === "map" ? "flex" : "none";
+        document.getElementById("view-rank").style.display =
+          tab === "rank" ? "flex" : "none";
+        document.getElementById("view-teller").style.display =
+          tab === "teller" ? "flex" : "none";
+        if (tab === "rank") renderRanking();
+        if (tab === "teller") renderTellerList();
       }
 
+      function renderRanking() {
+        rankingContainer.innerHTML = "";
+
+        let rankedData = [...restaurants]
+          .filter((r) => (r.likes || 0) > 0)
+          .sort((a, b) => (b.likes || 0) - (a.likes || 0));
+
+        if (rankedData.length === 0) {
+          rankingContainer.innerHTML =
+            '<li style="padding:20px; text-align:center; color:#888;">아직 따봉을 받은 이야기가 없습니다.<br>지도에서 첫 따봉의 주인공이 되어보세요!</li>';
+          return;
+        }
+
+        rankedData.forEach((rest, index) => {
+          let rankClass =
+            index === 0
+              ? "rank-1"
+              : index === 1
+                ? "rank-2"
+                : index === 2
+                  ? "rank-3"
+                  : "rank-etc";
+          let medal =
+            index === 0
+              ? "🥇"
+              : index === 1
+                ? "🥈"
+                : index === 2
+                  ? "🥉"
+                  : `${index + 1}`;
+          var li = document.createElement("li");
+          li.className = `ranking-item ${rankClass}`;
+          li.innerHTML = `
+            <div class="rank-medal">${medal}</div>
+            <div class="ranking-info">
+              <h4 style="font-size:12px; color:#888; font-weight:500;">📍 ${escapeHtml(rest.name)}</h4>
+              <p style="font-size:15px; font-weight:700; color:var(--text-main); margin:4px 0 6px;">" ${escapeHtml(rest.desc || "")} "</p>
+              <div style="font-size:12px; color:var(--accent); font-weight:600; display:flex; justify-content:space-between;">
+                <span>✍️ ${escapeHtml(rest.author)}</span>
+                <span style="background:rgba(232,74,95,0.1); padding:2px 8px; border-radius:10px;">👍 ${rest.likes || 0} 따봉</span>
+              </div>
+            </div>
+          `;
+          li.onclick = () => {
+            focusRestaurant(rest.id);
+            openStoryModal(rest.id);
+          };
+          rankingContainer.appendChild(li);
+        });
+      }
+
+      function renderTellerList() {
+        const tellerContainer = document.getElementById("teller-container");
+        tellerContainer.innerHTML = "";
+
+        let tellerMap = {};
+        restaurants.forEach((r) => {
+          if (r.author === "🤫 익명의 맛잘알") return;
+          if (!tellerMap[r.author])
+            tellerMap[r.author] = {
+              name: r.author,
+              count: 0,
+              likes: 0,
+              taste: r.tasteProfile,
+            };
+          tellerMap[r.author].count++;
+          tellerMap[r.author].likes += r.likes || 0;
+        });
+
+        let tellers = Object.values(tellerMap).sort(
+          (a, b) => b.likes - a.likes || b.count - a.count,
+        );
+
+        if (tellers.length === 0) {
+          tellerContainer.innerHTML =
+            '<li style="padding:20px; text-align:center; color:#888;">아직 등록된 닉네임이 없습니다.<br>첫 맛토리텔러가 되어보세요!</li>';
+          return;
+        }
+
+        tellers.forEach((teller, index) => {
+          let badge = getAuthorLevelBadge(teller.name);
+          let medal =
+            index === 0 ? "👑" : index === 1 ? "🥈" : index === 2 ? "🥉" : "";
+          var li = document.createElement("li");
+          li.className = "teller-item";
+          li.innerHTML = `
+            <div class="teller-profile">
+              <div>${badge} ${medal}</div>
+              <div class="teller-name">${escapeHtml(teller.name)} <span class="taste-profile">${escapeHtml(teller.taste || "")}</span></div>
+            </div>
+            <div class="teller-stat" style="text-align:right; background:transparent; padding:0;">
+              <div style="font-size:14px; font-weight:800; color:var(--accent);">👍 ${teller.likes} 따봉</div>
+              <div style="font-size:11px; color:#888; margin-top:4px;">작성한 이야기 ${teller.count}개</div>
+            </div>
+          `;
+          li.onclick = () => filterMapByTeller(teller.name);
+          tellerContainer.appendChild(li);
+        });
+      }
+
+      function filterMapByTeller(tellerName) {
+        switchTab("map");
+        document
+          .querySelectorAll(".chip")
+          .forEach((c) => c.classList.remove("active"));
+        document
+          .querySelector('.chip[data-cat="전체"]')
+          .classList.add("active");
+        currentCategory = "전체";
+        selectedRegion = null;
+
+        listContainer.style.display = "";
+        regionListEl.style.display = "none";
+        toolsHeader.style.display = "flex";
+
+        let filtered = restaurants.filter(
+          (r) =>
+            r.author === tellerName ||
+            (r.reviews && r.reviews.some((rev) => rev.author === tellerName)),
+        );
+
+        listContainer.innerHTML = `<li style="padding:16px; background:#fffdf9; border-bottom:1px solid #eaddcf; font-weight:700; color:var(--accent);">🔍 [${escapeHtml(tellerName)}] 님의 맛집 모아보기</li>`;
+
+        filtered.forEach((rest) => {
+          var li = document.createElement("li");
+          li.className = "restaurant-item";
+          let emoji = getCategoryEmoji(rest.category);
+          let storyCount = (rest.reviews && rest.reviews.length) || 1;
+          li.innerHTML = `<div onclick="focusRestaurant(${rest.id})">
+              <span class="cat-badge">${emoji} ${escapeHtml(rest.category)}</span>
+              <h3>${escapeHtml(rest.name)}</h3>
+              <p>${escapeHtml(rest.desc || "")}</p>
+              <span class="review-badge">🗣️ 맛토리텔링 ${storyCount}개</span>
+            </div>
+            <div class="item-actions" style="margin-top:14px;">
+              <button class="btn-review" onclick="openStoryModal(${rest.id})">이야기 보기</button>
+            </div>`;
+          listContainer.appendChild(li);
+        });
+
+        markers.forEach((m) => map.removeLayer(m));
+        markers = [];
+        filtered.forEach((rest) => {
+          let cat = rest.category;
+          var html = `<div style="padding:14px;text-align:center;"><div style="font-size:20px;">${getCategoryEmoji(cat)}</div><strong>${escapeHtml(rest.name)}</strong></div>`;
+          var marker = L.marker([rest.lat, rest.lng])
+            .addTo(map)
+            .bindPopup(html);
+          markers.push(marker);
+        });
+
+        if (filtered.length > 0)
+          map.setView([filtered[0].lat, filtered[0].lng], 14);
+      }
+
+      // 1. 역추적 마법사 함수 (줄임말 대응 기능 추가!)
+      function getSidoFromRegion(regionStr) {
+        if (!regionStr) return "기타지역";
+
+        // ① 공식 명칭으로 시작하는지 확인
+        for (let sido in regionData) {
+          if (regionStr.startsWith(sido)) return sido;
+        }
+
+        // ② 시/군/구 이름만 달랑 있는 경우 역추적 (예: 고양시)
+        for (let sido in regionData) {
+          if (regionData[sido].includes(regionStr)) return sido;
+        }
+
+        return "기타지역";
+      }
+
+      // 2. 3-Depth 아코디언 메뉴 렌더링
       function showRegionList() {
         selectedRegion = null;
         regionListEl.style.display = "";
         listContainer.style.display = "none";
-        btnBackRegion.style.display = "none";
+        toolsHeader.style.display = "none";
         regionListEl.innerHTML = "";
-        var counts = {};
-        restaurants.forEach(function (r) {
-          var reg = r.region || "기타";
-          counts[reg] = (counts[reg] || 0) + 1;
-        });
-        var regions = Object.keys(counts)
-          .sort()
-          .map(function (n) {
-            return { name: n, count: counts[n] };
-          });
 
-        if (regions.length === 0) {
+        let tree = {};
+
+        restaurants.forEach((r) => {
+          let s1 = r.normSido,
+            s2 = r.normSigungu,
+            s3 = r.normDong;
+
+          if (!tree[s1]) tree[s1] = { count: 0, sub: {} };
+          tree[s1].count++;
+
+          if (!tree[s1].sub[s2]) tree[s1].sub[s2] = { count: 0, sub: {} };
+          tree[s1].sub[s2].count++;
+
+          if (!tree[s1].sub[s2].sub[s3])
+            tree[s1].sub[s2].sub[s3] = { count: 0, exact: r.region };
+          tree[s1].sub[s2].sub[s3].count++;
+        });
+
+        if (Object.keys(tree).length === 0) {
           regionListEl.innerHTML =
-            '<li style="padding:16px; text-align:center; color:#888;">등록된 맛집이 없습니다.</li>';
+            '<li style="padding:20px;text-align:center;color:#888;">개척된 지역이 없습니다.</li>';
           return;
         }
-        regions.forEach(function (rg) {
-          var li = document.createElement("li");
-          li.className = "region-item";
-          li.innerHTML =
-            '<span class="region-name">' +
-            escapeHtml(rg.name) +
-            '</span><span class="region-count">' +
-            rg.count +
-            "곳</span>";
-          li.onclick = function () {
-            selectedRegion = rg.name;
-            showRestaurantList();
-          };
-          regionListEl.appendChild(li);
-        });
 
-        // 📱 모바일 UX: 지역 목록으로 오면 시트를 45% 기본 크기로 원상복구
-        if (window.innerWidth <= 768) {
-          const sheet = document.getElementById("bottom-sheet");
-          if (sheet) {
-            sheet.style.height = "45vh";
-            document.documentElement.style.setProperty(
-              "--sheet-height",
-              "45vh",
-            );
-          }
-        }
+        Object.keys(tree)
+          .sort()
+          .forEach((s1) => {
+            var li1 = document.createElement("li");
+            li1.className = "depth1-item";
+
+            var h1 = document.createElement("div");
+            h1.className = "depth1-header";
+            h1.innerHTML = `<span>📍 ${escapeHtml(s1)}</span><span class="count-badge">${tree[s1].count}곳 ▾</span>`;
+
+            var ul2 = document.createElement("ul");
+            ul2.className = "depth2-list";
+            ul2.style.display = "none";
+
+            Object.keys(tree[s1].sub)
+              .sort()
+              .forEach((s2) => {
+                var li2 = document.createElement("li");
+                var h2 = document.createElement("div");
+                h2.className = "depth2-header";
+                h2.innerHTML = `<span>📂 ${escapeHtml(s2)}</span><span class="count-badge">${tree[s1].sub[s2].count}곳 ▾</span>`;
+
+                var ul3 = document.createElement("ul");
+                ul3.className = "depth3-list";
+                ul3.style.display = "none";
+
+                Object.keys(tree[s1].sub[s2].sub)
+                  .sort()
+                  .forEach((s3) => {
+                    var li3 = document.createElement("li");
+                    li3.className = "depth3-item";
+                    let finalCount = tree[s1].sub[s2].sub[s3].count;
+                    let exactRegion = tree[s1].sub[s2].sub[s3].exact;
+
+                    li3.innerHTML = `<span>↳ ${escapeHtml(s3)}</span><span class="count-badge">${finalCount}곳</span>`;
+
+                    li3.onclick = (e) => {
+                      e.stopPropagation();
+                      selectedRegion = exactRegion;
+                      currentCategory = "전체";
+                      document
+                        .querySelectorAll(".chip")
+                        .forEach((c) => c.classList.remove("active"));
+                      document
+                        .querySelector('.chip[data-cat="전체"]')
+                        .classList.add("active");
+                      showRestaurantList();
+                    };
+                    ul3.appendChild(li3);
+                  });
+
+                h2.onclick = (e) => {
+                  e.stopPropagation();
+                  ul3.style.display =
+                    ul3.style.display === "none" ? "block" : "none";
+                };
+                li2.appendChild(h2);
+                li2.appendChild(ul3);
+                ul2.appendChild(li2);
+              });
+
+            h1.onclick = () => {
+              ul2.style.display =
+                ul2.style.display === "none" ? "block" : "none";
+            };
+            li1.appendChild(h1);
+            li1.appendChild(ul2);
+            regionListEl.appendChild(li1);
+          });
       }
+
       function showRestaurantList() {
         regionListEl.style.display = "none";
         listContainer.style.display = "";
-        btnBackRegion.style.display = "block";
-        var filtered = restaurants.filter(function (r) {
-          return (r.region || "기타") === selectedRegion;
-        });
-
+        toolsHeader.style.display = "flex";
+        let filtered = restaurants.filter(
+          (r) =>
+            r.region === selectedRegion &&
+            (currentCategory === "전체" || r.category === currentCategory),
+        );
+        if (currentSort === "new") filtered.sort((a, b) => b.id - a.id);
+        else if (currentSort === "likes")
+          filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        else if (currentSort === "name")
+          filtered.sort((a, b) => a.name.localeCompare(b.name));
         listContainer.innerHTML = "";
-        filtered.forEach(function (rest) {
-          var li = document.createElement("li");
-          li.className = "restaurant-item";
-          li.innerHTML =
-            '<div onclick="focusRestaurant(' +
-            rest.id +
-            ')">' +
-            "<h3>" +
-            escapeHtml(rest.name) +
-            "</h3><p>" +
-            escapeHtml(rest.desc) +
-            "</p>" +
-            '<span class="review-badge">리뷰 ' +
-            (rest.reviews ? rest.reviews.length : 0) +
-            "개</span></div>" +
-            '<div class="item-actions">' +
-            '<button type="button" class="btn-review" onclick="openReviewModal(' +
-            rest.id +
-            ')">리뷰보기</button>' +
-            '<button type="button" class="btn-edit" onclick="openPwModal(\'edit\', ' +
-            rest.id +
-            ')">수정</button>' +
-            '<button type="button" class="btn-delete" onclick="openPwModal(\'delete\', ' +
-            rest.id +
-            ')">삭제</button></div>';
-          listContainer.appendChild(li);
-        });
-
-        // 📱 모바일 UX: 맛집 목록을 누르면 리스트를 시원하게 보라고 시트를 화면 끝(90%)까지 쫙 펴줌!
-        if (window.innerWidth <= 768) {
-          const sheet = document.getElementById("bottom-sheet");
-          if (sheet) {
-            sheet.style.height = "90vh";
-            document.documentElement.style.setProperty(
-              "--sheet-height",
-              "90vh",
-            );
-          }
+        if (filtered.length === 0) {
+          listContainer.innerHTML =
+            '<li style="padding:20px;text-align:center;color:#888;">해당하는 맛집이 없습니다.</li>';
+          return;
         }
-      }
 
-      function renderRestaurantList(list) {
-        listContainer.innerHTML = "";
-        (list || []).forEach(function (rest) {
-          if (!rest.reviews) rest.reviews = [];
-          var reviewCount = rest.reviews.length;
-          var restIdStr = String(rest.id);
+        filtered.forEach((rest) => {
           var li = document.createElement("li");
           li.className = "restaurant-item";
-
-          li.innerHTML =
-            '<div class="item-body"><h3>' +
-            escapeHtml(rest.name) +
-            "</h3><p>" +
-            escapeHtml(rest.desc) +
-            "</p>" +
-            '<span class="review-badge">리뷰 ' +
-            reviewCount +
-            "개</span></div>" +
-            '<div class="item-actions">' +
-            '<button type="button" class="btn-review" data-rest-id="' +
-            restIdStr +
-            '">리뷰</button>' +
-            '<button type="button" class="btn-edit" data-rest-id="' +
-            restIdStr +
-            '">수정</button>' +
-            '<button type="button" class="btn-delete" data-rest-id="' +
-            restIdStr +
-            '">삭제</button>' +
-            "</div>";
-
-          li.dataset.id = restIdStr;
-
-          li.addEventListener("click", function (e) {
-            if (!e.target.closest(".item-actions")) focusRestaurant(rest);
-          });
-
-          li.querySelector(".btn-review").addEventListener(
-            "click",
-            function (e) {
-              e.stopPropagation();
-              var targetId = e.currentTarget.getAttribute("data-rest-id");
-              var r = getRestById(targetId);
-              if (r) openReviewModal(r);
-            },
-          );
-
-          li.querySelector(".btn-edit").addEventListener("click", function (e) {
-            e.stopPropagation();
-            var targetId = e.currentTarget.getAttribute("data-rest-id");
-            openPwModal("edit", targetId);
-          });
-
-          li.querySelector(".btn-delete").addEventListener(
-            "click",
-            function (e) {
-              e.stopPropagation();
-              var targetId = e.currentTarget.getAttribute("data-rest-id");
-              openPwModal("delete", targetId);
-            },
-          );
-
+          let emoji = getCategoryEmoji(rest.category);
+          li.innerHTML = `<div onclick="focusRestaurant(${rest.id})">
+              <span class="cat-badge">${emoji} ${escapeHtml(rest.category)}</span>
+              <h3>${escapeHtml(rest.name)}</h3>
+              <p style="font-style: italic; color: #555;">" ${escapeHtml(rest.desc || "")} "</p>
+              <span class="review-badge" style="background:rgba(232,74,95,0.1); padding:4px 8px; border-radius:6px;">👍 따봉 ${rest.likes || 0}개</span>
+            </div>
+            <div class="item-actions" style="margin-top:14px;">
+              <button class="btn-review" onclick="openStoryModal(${rest.id})">이야기 보기</button>
+              <button class="btn-edit" onclick="openPwModal('edit', ${rest.id})">수정</button>
+              <button class="btn-edit" onclick="openPwModal('delete', ${rest.id})">삭제</button>
+            </div>`;
           listContainer.appendChild(li);
         });
       }
 
-      btnBackRegion.addEventListener("click", showRegionList);
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.addEventListener("click", (e) => {
+          document
+            .querySelectorAll(".chip")
+            .forEach((c) => c.classList.remove("active"));
+          e.target.classList.add("active");
+          currentCategory = e.target.getAttribute("data-cat");
+          showRestaurantList();
+        });
+      });
+      document.getElementById("sort-select").addEventListener("change", (e) => {
+        currentSort = e.target.value;
+        showRestaurantList();
+      });
+      document
+        .getElementById("btn-back-region")
+        .addEventListener("click", showRegionList);
 
-      function openReviewModal(rest) {
-        document.getElementById("review-modal-title").textContent =
-          rest.name + " · 부스텔 리뷰";
-        document.getElementById("review-rest-id").value = rest.id;
-        document.getElementById("review-author").value = "";
-        document.getElementById("review-content").value = "";
-        var listEl = document.getElementById("review-list");
-        listEl.innerHTML = "";
-        if (!rest.reviews || rest.reviews.length === 0) {
-          listEl.innerHTML =
-            '<li class="review-empty">아직 리뷰가 없어요. 첫 리뷰를 남겨보세요!</li>';
-        } else {
-          rest.reviews.forEach(function (r) {
-            var li = document.createElement("li");
-            li.innerHTML =
-              '<div class="review-author">' +
-              escapeHtml(r.author) +
-              '</div><div class="review-content">' +
-              escapeHtml(r.content) +
-              "</div>";
-            listEl.appendChild(li);
-          });
+      // 이야기 보기 (스토리북 모달 열기)
+      function openStoryModal(id) {
+        var rest = getRestById(id);
+        const contentArea = document.getElementById("story-content-area");
+
+        let emoji = getCategoryEmoji(rest.category);
+        let badge = getAuthorLevelBadge(rest.author);
+
+        if (rest.author === "🤫 익명의 맛잘알") badge = "👤";
+
+        let revisitText = "🔥 무조건 또 감";
+        let revisitColor = "var(--accent)";
+        if (rest.revisit === "soso") {
+          revisitText = "🤔 누가 사주면 감";
+          revisitColor = "#e67e22";
         }
-        modalReview.classList.add("active");
+        if (rest.revisit === "no") {
+          revisitText = "🤐 한 번으로 족함";
+          revisitColor = "#7f8c8d";
+        }
+
+        contentArea.innerHTML = `
+          <div class="story-header">
+            <div class="story-meta">${emoji} ${escapeHtml(rest.category)} · ${escapeHtml((rest.region || "").split(" ")[0])}</div>
+            <div class="story-title">${escapeHtml(rest.name)}</div>
+          </div>
+
+          <div class="story-body">
+            ${escapeHtml(rest.desc || "").replace(/\n/g, "<br>")}
+          </div>
+
+          <div class="story-footer">
+            <div class="story-menu-pick">
+              <span>🍽️ 원픽 추천 메뉴</span>
+              <span>${escapeHtml(rest.menu || "")}</span>
+            </div>
+            <div class="story-evaluation">
+              <div class="story-author-info">
+                <div style="font-size:11px; color:#888;">이 이야기를 들려준 사람</div>
+                <div style="font-size:14px; font-weight:700;">${badge} ${escapeHtml(rest.author)} <span style="font-size:12px; font-weight:500; color:#666;">(${escapeHtml(rest.tasteProfile || "")})</span></div>
+              </div>
+
+              <button onclick="likeStory(${rest.id}, this)" style="background:var(--bg); border:1px solid var(--border); padding:8px 14px; border-radius:20px; cursor:pointer; font-weight:700; color:var(--accent); transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+                ${localStorage.getItem("liked_" + rest.id) ? "👍 따봉 완료!" : "👍 이 이야기 추천"} <span style="margin-left:4px;">${rest.likes || 0}</span>
+              </button>
+
+            </div>
+          </div>
+        `;
+
+        document.getElementById("modal-story").classList.add("active");
       }
 
-      function escapeHtml(s) {
-        var div = document.createElement("div");
-        div.textContent = s;
-        return div.innerHTML;
-      }
+      document
+        .getElementById("btn-story-close")
+        .addEventListener("click", () =>
+          document.getElementById("modal-story").classList.remove("active"),
+        );
+      document.getElementById("modal-story").addEventListener("click", (e) => {
+        if (e.target.id === "modal-story-backdrop")
+          document.getElementById("modal-story").classList.remove("active");
+      });
 
-      function closeReviewModal() {
-        modalReview.classList.remove("active");
-      }
+      // 💖 따봉(좋아요) 처리 함수
+      window.likeStory = function (id, btnElement) {
+        if (localStorage.getItem("liked_" + id)) {
+          alert("이미 따봉을 누르셨습니다! 👍 (1인 1따봉)");
+          return;
+        }
+        var rest = getRestById(id);
+        if (!rest) return;
 
-      function openPwModal(action, restId) {
-        pwAction = action;
-        var num = parseInt(restId, 10);
-        pwRestId = isNaN(num) ? restId : num;
-        inputPwCheck.value = "";
-        modalPw.classList.add("active");
-        inputPwCheck.focus();
-      }
+        rest.likes = (rest.likes || 0) + 1;
+        localStorage.setItem("liked_" + id, "true");
 
-      function closePwModal() {
-        modalPw.classList.remove("active");
-        pwAction = null;
-        pwRestId = null;
-      }
+        btnElement.innerHTML = `👍 따봉 완료! <span style="margin-left:4px;">${rest.likes}</span>`;
+        btnElement.style.background = "var(--accent)";
+        btnElement.style.color = "#fff";
 
-      function openEditModal(rest) {
-        document.getElementById("edit-id").value = rest.id;
-        document.getElementById("edit-name").value = rest.name;
-        document.getElementById("edit-desc").value = rest.desc;
-        document.getElementById("edit-region").value = rest.region || "";
-        document.getElementById("edit-search").value = "";
-        modalEdit.classList.add("active");
-      }
-
-      function closeEditModal() {
-        modalEdit.classList.remove("active");
-      }
+        updateUI();
+        if (currentTab === "rank") renderRanking();
+        if (currentTab === "teller") renderTellerList();
+        if (typeof saveSingleRestaurantToFirestore === "function")
+          saveSingleRestaurantToFirestore(rest);
+      };
 
       function focusRestaurant(restParam) {
         if (!map) return;
-
         var rest =
           typeof restParam === "object" ? restParam : getRestById(restParam);
-        if (!rest || rest.lat === undefined || rest.lng === undefined) return;
-
-        // 지도 위치만 딱 이동시키고 끝냅니다.
-        map.setView([rest.lat, rest.lng], 15);
-
-        // 🚨 목록을 바닥으로 숨겨버리던 주범(15vh 축소 로직)을 삭제했습니다!
+        if (!rest || !rest.lat) return;
+        map.setView([rest.lat, rest.lng], 16);
       }
-      // 👇 실수로 지워졌던 initMap 함수 뚜껑을 다시 살려놓았습니다!
       function initMap() {
-        var loadingEl = document.getElementById("map-loading");
-        if (loadingEl) loadingEl.style.display = "none";
-
-        map = L.map("map").setView([37.5034, 126.766], 12);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(map);
+        if (mapLoading) mapLoading.style.display = "none";
+        map = L.map("map", { zoomControl: false }).setView(
+          [37.5034, 126.766],
+          12,
+        );
+        L.control.zoom({ position: "topright" }).addTo(map);
+        L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+        ).addTo(map);
         updateMarkers();
       }
-
       function updateMarkers() {
         if (!map) return;
-        markers.forEach(function (m) {
-          map.removeLayer(m);
-        });
+        markers.forEach((m) => map.removeLayer(m));
         markers = [];
-
-        restaurants.forEach(function (rest) {
-          var cnt = (rest.reviews && rest.reviews.length) || 0;
-          var html =
-            "<div style=\"padding:12px 14px;min-width:160px;font-size:13px;background:#fff;color:#1a1a1a;border-radius:10px;border:1px solid #eee;box-shadow:0 4px 16px rgba(0,0,0,0.08);font-family:'Paperlogy',sans-serif;\"><strong>" +
-            rest.name +
-            '</strong><br/><span style="color:#5c5c5c;">' +
-            rest.desc +
-            '</span><br/><span style="color:#e84a5f;font-size:12px;">부스텔 리뷰 ' +
-            cnt +
-            "개</span></div>";
+        restaurants.forEach((rest) => {
+          let cat = rest.category;
+          var html = `<div style="padding:14px;text-align:center;"><div style="font-size:20px;">${getCategoryEmoji(cat)}</div><strong>${escapeHtml(rest.name)}</strong></div>`;
           var marker = L.marker([rest.lat, rest.lng])
             .addTo(map)
             .bindPopup(html);
           markers.push(marker);
         });
       }
-
       function updateUI() {
         if (selectedRegion) showRestaurantList();
         else showRegionList();
@@ -1133,255 +2460,165 @@
 
       initMap();
 
-      btnOpenModal.addEventListener("click", function () {
-        modal.classList.add("active");
-        document.getElementById("input-name").focus();
-      });
+      const modal = document.getElementById("modal"),
+        modalPw = document.getElementById("modal-pw"),
+        modalEdit = document.getElementById("modal-edit");
+      document
+        .getElementById("btn-open-modal")
+        .addEventListener("click", () => modal.classList.add("active"));
+      document
+        .getElementById("btn-close-modal")
+        .addEventListener("click", () => modal.classList.remove("active"));
+      document
+        .getElementById("btn-pw-cancel")
+        .addEventListener("click", () => modalPw.classList.remove("active"));
+      document
+        .getElementById("btn-edit-cancel")
+        .addEventListener("click", () => modalEdit.classList.remove("active"));
 
-      btnCloseModal.addEventListener("click", function () {
-        modal.classList.remove("active");
-        addForm.reset();
-      });
-
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal || e.target.id === "modal-backdrop") {
-          modal.classList.remove("active");
-          addForm.reset();
-        }
-      });
-
-      addForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var name = document.getElementById("input-name").value.trim();
-        var desc = document.getElementById("input-desc").value.trim();
-        var searchQuery = document.getElementById("input-search").value.trim();
-        var pw = document.getElementById("input-pw").value.trim();
-        var submitBtn = addForm.querySelector(".btn-submit");
-        if (!searchQuery) {
-          alert("위치 검색어를 입력해 주세요.");
-          return;
-        }
-        if (!pw) {
-          alert("등록자 비밀번호를 입력해 주세요.");
-          return;
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = "검색 중…";
-        var url =
-          "https://nominatim.openstreetmap.org/search?q=" +
-          encodeURIComponent(searchQuery) +
-          "&format=json&limit=1";
-        fetch(url, {
-          headers: {
-            "Accept-Language": "ko",
-            "User-Agent": "BucheonMatAcademy/1.0",
-          },
-        })
-          .then(function (r) {
-            return r.json();
-          })
-          .then(function (data) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "지도에 박기";
-            if (!data || data.length === 0) {
-              alert(
-                "위치를 찾을 수 없습니다. 인근 역명이나 주소로 다시 검색해 주세요.",
-              );
-              return;
-            }
-            var lat = parseFloat(data[0].lat);
-            var lng = parseFloat(data[0].lon);
-            var region =
-              document.getElementById("input-region").value.trim() || "기타";
-            var newId = Date.now();
-
-            var newRest = {
-              id: newId,
-              name: name,
-              desc: desc,
-              lat: lat,
-              lng: lng,
-              password: pw,
-              reviews: [],
-              region: region,
-            };
-            restaurants.push(newRest);
-            updateUI();
-            focusRestaurant(newRest);
-            modal.classList.remove("active");
-            addForm.reset();
-
-            if (typeof saveSingleRestaurantToFirestore === "function")
-              saveSingleRestaurantToFirestore(newRest);
-          })
-          .catch(function () {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "지도에 박기";
-            alert("검색 중 오류가 났습니다. 다시 시도해 주세요.");
-          });
-      });
-
-      btnPwCancel.addEventListener("click", closePwModal);
-      modalPw.addEventListener("click", function (e) {
-        if (e.target.id === "modal-pw-backdrop") closePwModal();
-      });
-
-      // 엔터키를 치면 확인 버튼이 눌리도록 추가!
-      inputPwCheck.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
+      document
+        .getElementById("add-form")
+        .addEventListener("submit", function (e) {
           e.preventDefault();
-          btnPwConfirm.click();
-        }
-      });
+          var btn = this.querySelector(".btn-submit");
+          btn.disabled = true;
 
-      // --- 🚨 버그가 해결된 비밀번호 확인 로직 ---
-      btnPwConfirm.addEventListener("click", function () {
-        var rest = getRestById(pwRestId);
-        if (!rest) {
-          alert("맛집을 찾을 수 없습니다.");
-          closePwModal();
-          return;
-        }
-        var inputPw = String(inputPwCheck.value || "").trim();
-        var expectedPw = String(rest.password || "0000").trim();
-        if (expectedPw !== inputPw) {
-          alert("비밀번호가 일치하지 않습니다.");
-          return;
-        }
+          let modeVal = document.querySelector(
+            'input[name="add-mode"]:checked',
+          ).value;
+          let finalAuthor = "🤫 익명의 맛잘알";
+          let finalProfile = "😎 잡식주의";
 
-        // 👉 핵심 해결 포인트: 창을 닫기(closePwModal) 전에 현재 상태를 안전하게 저장해둡니다!
-        var currentAction = pwAction;
-        var currentTargetId = pwRestId;
+          if (modeVal === "public") {
+            finalAuthor = document.getElementById("add-author").value.trim();
+            let selProfile = document.getElementById("add-taste");
+            finalProfile = selProfile.value;
+          }
 
-        // 이제 안전하게 기억을 지우고 창을 닫습니다.
-        closePwModal();
-
-        // 저장해둔 상태를 바탕으로 로직을 실행합니다.
-        if (currentAction === "delete") {
-          restaurants = restaurants.filter(function (r) {
-            return Number(r.id) !== Number(currentTargetId);
-          });
-          updateUI();
-          if (typeof removeRestaurantFromFirestore === "function")
-            removeRestaurantFromFirestore(currentTargetId);
-        } else if (currentAction === "edit") {
-          openEditModal(rest);
-        }
-      });
-
-      btnEditCancel.addEventListener("click", closeEditModal);
-      modalEdit.addEventListener("click", function (e) {
-        if (e.target.id === "modal-edit-backdrop") closeEditModal();
-      });
-
-      editForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var id = parseInt(document.getElementById("edit-id").value, 10);
-        var name = document.getElementById("edit-name").value.trim();
-        var desc = document.getElementById("edit-desc").value.trim();
-        var searchQuery = document.getElementById("edit-search").value.trim();
-        var rest = getRestById(id);
-        if (!rest) return;
-
-        rest.name = name;
-        rest.desc = desc;
-        var editRegion = document.getElementById("edit-region").value.trim();
-        if (editRegion) rest.region = editRegion;
-
-        var submitBtn = editForm.querySelector(".btn-submit");
-        submitBtn.disabled = true;
-        submitBtn.textContent = "저장 중...";
-
-        if (searchQuery) {
-          var url =
+          fetch(
             "https://nominatim.openstreetmap.org/search?q=" +
-            encodeURIComponent(searchQuery) +
-            "&format=json&limit=1";
-          fetch(url, {
-            headers: {
-              "Accept-Language": "ko",
-              "User-Agent": "BucheonMatAcademy/1.0",
-            },
-          })
-            .then(function (r) {
-              return r.json();
+              encodeURIComponent(
+                document.getElementById("input-search").value,
+              ) +
+              "&format=json&limit=1",
+          )
+            .then((r) => r.json())
+            .then((data) => {
+              btn.disabled = false;
+              if (!data || !data.length)
+                return alert("위치 검색 실패! 동 이름을 다시 확인해주세요.");
+
+              var newRest = {
+                id: Date.now(),
+                name: document.getElementById("input-name").value.trim(),
+                category: document.getElementById("input-category").value,
+                region: document.getElementById("input-region").value,
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon),
+                password: document.getElementById("input-pw").value,
+                author: finalAuthor,
+                tasteProfile: finalProfile,
+                menu: document.getElementById("add-menu").value.trim(),
+                desc: document.getElementById("input-desc").value.trim(),
+                revisit: document.querySelector(
+                  'input[name="add-revisit"]:checked',
+                ).value,
+                likes: 0, // 신규: 처음 등록될 때는 따봉 0개!
+              };
+
+              restaurants.push(newRest);
+              updateUI();
+              focusRestaurant(newRest.id);
+              document.getElementById("modal").classList.remove("active");
+              if (typeof saveSingleRestaurantToFirestore === "function")
+                saveSingleRestaurantToFirestore(newRest);
             })
-            .then(function (data) {
-              if (data && data.length > 0) {
-                rest.lat = parseFloat(data[0].lat);
-                rest.lng = parseFloat(data[0].lon);
-              } else {
-                alert("변경된 위치를 찾을 수 없어 기존 위치를 유지합니다.");
-              }
-              finishEdit(rest, submitBtn);
-            })
-            .catch(function () {
-              alert("위치 검색 오류가 발생했습니다. 기존 위치로 저장합니다.");
-              finishEdit(rest, submitBtn);
+            .catch(() => {
+              btn.disabled = false;
+              alert("오류가 발생했습니다.");
             });
-        } else {
-          finishEdit(rest, submitBtn);
-        }
-      });
-
-      function finishEdit(rest, btn) {
-        updateUI();
-        closeEditModal();
-        btn.disabled = false;
-        btn.textContent = "수정 완료";
-        if (typeof saveSingleRestaurantToFirestore === "function")
-          saveSingleRestaurantToFirestore(rest);
+        });
+      function openPwModal(act, id) {
+        pwAction = act;
+        pwRestId = id;
+        document.getElementById("input-pw-check").value = "";
+        modalPw.classList.add("active");
       }
+      document
+        .getElementById("btn-pw-confirm")
+        .addEventListener("click", function () {
+          var rest = getRestById(pwRestId);
+          if (rest.password !== document.getElementById("input-pw-check").value)
+            return alert("비밀번호 불일치");
+          modalPw.classList.remove("active");
+          if (pwAction === "delete") {
+            restaurants = restaurants.filter((r) => r.id !== pwRestId);
+            updateUI();
+            if (typeof removeRestaurantFromFirestore === "function")
+              removeRestaurantFromFirestore(pwRestId);
+          } else if (pwAction === "edit") {
+            document.getElementById("edit-id").value = rest.id;
+            document.getElementById("edit-name").value = rest.name;
+            document.getElementById("edit-category").value =
+              rest.category || "기타";
 
-      btnReviewClose.addEventListener("click", closeReviewModal);
-      modalReview.addEventListener("click", function (e) {
-        if (e.target.id === "modal-review-backdrop") closeReviewModal();
-      });
+            let regParts = (rest.region || "").split(" ");
+            let eSido = regParts[0];
+            let eSigungu = regParts.slice(1).join(" ");
 
-      reviewForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var restId = parseInt(
-          document.getElementById("review-rest-id").value,
-          10,
-        );
-        var author = document.getElementById("review-author").value.trim();
-        var content = document.getElementById("review-content").value.trim();
-        var rest = getRestById(restId);
-        if (!rest) return;
-        if (!rest.reviews) rest.reviews = [];
-        rest.reviews.push({
-          id: Date.now(),
-          author: author,
-          content: content,
-          createdAt: new Date().toISOString(),
+            let sidoSel = document.getElementById("edit-sido");
+            sidoSel.value = eSido || "";
+            sidoSel.dispatchEvent(new Event("change"));
+
+            if (eSigungu)
+              document.getElementById("edit-sigungu").value = eSigungu;
+            document.getElementById("edit-dong").value = rest.normDong || "";
+            document.getElementById("edit-region").value = rest.region || "";
+
+            document.getElementById("edit-search").value = "";
+            modalEdit.classList.add("active");
+          }
         });
-
-        document.getElementById("review-author").value = "";
-        document.getElementById("review-content").value = "";
-        var listEl = document.getElementById("review-list");
-        listEl.innerHTML = "";
-        rest.reviews.forEach(function (r) {
-          var li = document.createElement("li");
-          li.innerHTML =
-            '<div class="review-author">' +
-            escapeHtml(r.author) +
-            '</div><div class="review-content">' +
-            escapeHtml(r.content) +
-            "</div>";
-          listEl.appendChild(li);
+      document
+        .getElementById("edit-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          var rest = getRestById(
+            parseInt(document.getElementById("edit-id").value, 10),
+          );
+          rest.name = document.getElementById("edit-name").value;
+          rest.category = document.getElementById("edit-category").value;
+          rest.region = document.getElementById("edit-region").value;
+          var sq = document.getElementById("edit-search").value;
+          if (sq) {
+            fetch(
+              "https://nominatim.openstreetmap.org/search?q=" +
+                encodeURIComponent(sq) +
+                "&format=json&limit=1",
+            )
+              .then((r) => r.json())
+              .then((d) => {
+                if (d && d.length) {
+                  rest.lat = parseFloat(d[0].lat);
+                  rest.lng = parseFloat(d[0].lon);
+                }
+                updateUI();
+                modalEdit.classList.remove("active");
+                if (typeof saveSingleRestaurantToFirestore === "function")
+                  saveSingleRestaurantToFirestore(rest);
+              });
+          } else {
+            updateUI();
+            modalEdit.classList.remove("active");
+            if (typeof saveSingleRestaurantToFirestore === "function")
+              saveSingleRestaurantToFirestore(rest);
+          }
         });
-        updateUI();
-        if (typeof saveSingleRestaurantToFirestore === "function")
-          saveSingleRestaurantToFirestore(rest);
-      });
-
-      normalizeRestaurants();
 
       function applyFirestoreSnapshot(snap) {
         restaurants = [];
         if (snap && !snap.empty) {
-          snap.forEach(function (doc) {
+          snap.forEach((doc) => {
             var d = doc.data();
             restaurants.push({
               id: Number(d.id),
@@ -1389,131 +2626,66 @@
               desc: d.desc || "",
               lat: Number(d.lat),
               lng: Number(d.lng),
-              password:
-                d.password != null && d.password !== ""
-                  ? String(d.password)
-                  : "0000",
-              region: d.region || "기타",
+              password: d.password || "0000",
+              region: d.region || "기타지역",
+              category: d.category || "기타",
               reviews: Array.isArray(d.reviews) ? d.reviews : [],
+              author: d.author,
+              tasteProfile: d.tasteProfile,
+              menu: d.menu,
+              revisit: d.revisit,
+              likes: Number(d.likes) || 0,
             });
           });
-          restaurants.sort(function (a, b) {
-            return a.id - b.id;
-          });
+          restaurants.sort((a, b) => a.id - b.id);
           normalizeRestaurants();
         }
-        if (selectedRegion) showRestaurantList();
-        else showRegionList();
-        if (map) updateMarkers();
+        updateUI();
+        if (currentTab === "rank") renderRanking();
       }
-
       function initFirebase() {
-        if (typeof firebase === "undefined" || !firebase.firestore) return;
         var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
-        if (!cfg || !cfg.apiKey) return;
-        try {
-          if (!firebase.apps.length) firebase.initializeApp(cfg);
-          var db = firebase.firestore();
-          db.collection("restaurants").onSnapshot(
-            function (snap) {
-              applyFirestoreSnapshot(snap);
-            },
-            function (err) {
-              console.warn("Firestore 연동 실패:", err);
-            },
-          );
-        } catch (e) {
-          console.warn("Firebase 초기화 실패:", e);
-        }
+        if (!cfg.apiKey || typeof firebase === "undefined") return;
+        if (!firebase.apps.length) firebase.initializeApp(cfg);
+        firebase
+          .firestore()
+          .collection("restaurants")
+          .onSnapshot(applyFirestoreSnapshot);
       }
-
       function saveSingleRestaurantToFirestore(targetRest) {
-        var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
-        if (
-          typeof firebase === "undefined" ||
-          !firebase.firestore ||
-          !cfg ||
-          !cfg.apiKey
-        )
-          return;
-
+        if (typeof firebase === "undefined") return;
         firebase
           .firestore()
           .collection("restaurants")
           .doc(String(targetRest.id))
-          .set({
-            id: targetRest.id,
-            name: targetRest.name,
-            desc: targetRest.desc,
-            lat: targetRest.lat,
-            lng: targetRest.lng,
-            password: targetRest.password,
-            region: targetRest.region || "기타",
-            reviews: targetRest.reviews || [],
-          })
-          .then(function () {
-            console.log("서버에 반영 완료! 🚀");
-          })
-          .catch(function (error) {
-            alert(
-              "🚨 서버 저장/수정 실패!\n에러 내용: " +
-                error.message +
-                "\n\n(Firebase 보안 규칙이 잠겨있는 것 같습니다.)",
-            );
-          });
+          .set(targetRest);
       }
-
       function removeRestaurantFromFirestore(restId) {
-        var cfg = window.FIREBASE_CONFIG || window.FIREBASE_CONFIG_PLACEHOLDER;
-        if (
-          typeof firebase === "undefined" ||
-          !firebase.firestore ||
-          !cfg ||
-          !cfg.apiKey
-        )
-          return;
-
+        if (typeof firebase === "undefined") return;
         firebase
           .firestore()
           .collection("restaurants")
           .doc(String(restId))
-          .delete()
-          .then(function () {
-            console.log("서버에서 삭제 완료! 🗑️");
-          })
-          .catch(function (error) {
-            alert(
-              "🚨 서버 삭제 실패!\n에러 내용: " +
-                error.message +
-                "\n\n(Firebase 보안 규칙이 잠겨있는 것 같습니다.)",
-            );
-          });
+          .delete();
       }
 
       (function () {
         var cfg = window.FIREBASE_CONFIG_PLACEHOLDER;
         if (cfg && cfg.apiKey) {
           window.FIREBASE_CONFIG = cfg;
-          regionListEl.innerHTML = '<li class="review-empty">불러오는 중…</li>';
-          regionListEl.style.display = "";
-          listContainer.style.display = "none";
           initFirebase();
         } else {
           showRegionList();
-          if (map) updateMarkers();
         }
       })();
-      // --- 📱 모바일 UX: 바텀 시트 드래그 & 스냅 로직 ---
       (function initBottomSheet() {
-        const sheet = document.getElementById("bottom-sheet");
-        const header = document.getElementById("sheet-header");
-        const handle = document.getElementById("drag-handle");
+        const sheet = document.getElementById("bottom-sheet"),
+          header = document.getElementById("sheet-header"),
+          handle = document.getElementById("drag-handle");
         if (!sheet || !header || !handle) return;
-
-        let startY = 0;
-        let startHeight = 0;
-        let isDragging = false;
-
+        let startY = 0,
+          startHeight = 0,
+          isDragging = false;
         function onDragStart(e) {
           if (window.innerWidth > 768) return;
           isDragging = true;
@@ -1521,50 +2693,33 @@
           startHeight = sheet.getBoundingClientRect().height;
           sheet.classList.add("dragging");
         }
-
         function onDragMove(e) {
           if (!isDragging) return;
           const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-          const deltaY = startY - currentY;
-          let newHeight = startHeight + deltaY;
+          let newHeight = startHeight + (startY - currentY);
           const vh = window.innerHeight;
-
           if (newHeight > vh * 0.9) newHeight = vh * 0.9;
           if (newHeight < vh * 0.15) newHeight = vh * 0.15;
-
           sheet.style.height = `${newHeight}px`;
-          document.documentElement.style.setProperty(
-            "--sheet-height",
-            `${newHeight}px`,
-          );
         }
-
         function onDragEnd() {
           if (!isDragging) return;
           isDragging = false;
           sheet.classList.remove("dragging");
-
           const currentHeight = sheet.getBoundingClientRect().height;
           const vh = window.innerHeight;
-          let snapHeight;
-
-          if (currentHeight > vh * 0.65) snapHeight = 90;
-          else if (currentHeight < vh * 0.3) snapHeight = 15;
-          else snapHeight = 45;
-
+          let snapHeight =
+            currentHeight > vh * 0.65 ? 85 : currentHeight < vh * 0.3 ? 15 : 50;
           sheet.style.height = `${snapHeight}vh`;
           document.documentElement.style.setProperty(
             "--sheet-height",
             `${snapHeight}vh`,
           );
         }
-
         header.addEventListener("touchstart", onDragStart, { passive: true });
         handle.addEventListener("touchstart", onDragStart, { passive: true });
         window.addEventListener("touchmove", onDragMove, { passive: true });
         window.addEventListener("touchend", onDragEnd);
-        // 👇 굳어짐(프리징) 현상을 완벽 차단하는 생명줄!
-        window.addEventListener("touchcancel", onDragEnd);
       })();
     </script>
   </body>
